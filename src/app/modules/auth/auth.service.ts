@@ -7,8 +7,9 @@ import config from '../../config';
 import ApiError from '../../errors/apiError';
 import { prisma } from '../../prisma/prisma';
 import emailSender from '../../utils/emailSender';
+import { getOtpEmailTemplate } from '../../utils/emailTemplates';
 import { jwtHelper } from '../../utils/JwtHelper';
-import { TRegisterUser, TSocialLoginPayload } from './auth.interface';
+import { TRegisterUser, TSocialLoginPayload, TVerifyEmailPayload, TVerifyOtpPayload, TResendOtpPayload } from './auth.interface';
 
 const login = async (payload: { email: string; password: string }) => {
   const user = await prisma.user.findUniqueOrThrow({
@@ -28,6 +29,12 @@ const login = async (payload: { email: string; password: string }) => {
 
   if (!isCorrectPassword) {
     throw new ApiError(401, 'Invalid credentials');
+  }
+
+  if (user.status === 'INACTIVE') {
+    return {
+      isEmailVerified: false,
+    };
   }
 
   const accessToken = jwtHelper.generateToken(
@@ -66,34 +73,39 @@ const forgotPassword = async (payload: { email: string }) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
 
-  const resetToken = jwtHelper.generateToken(
-    {
-      id: userData.id,
-      email: userData.email,
-      role: userData.role,
-    },
-    config.jwt.reset_pass_secret as Secret,
-    config.jwt.reset_pass_token_expires_in as string,
-  );
+  const resetOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  const resetLink = `${config.reset_pass_link}?token=${resetToken}`;
+  await prisma.verificationCode.upsert({
+    where: {
+      email_type: {
+        email: userData.email,
+        type: 'PASSWORD_RESET',
+      },
+    },
+    update: {
+      code: resetOtp,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+    },
+    create: {
+      email: userData.email,
+      code: resetOtp,
+      type: 'PASSWORD_RESET',
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    },
+  });
 
   await emailSender(
     'Reset Your Password',
     userData.email,
-    `
-        <p>Hello ${userData.name || 'User'},</p>
-        <p>Click the link below to reset your password:</p>
-         <a href="${resetLink}" style="text-decoration: none;">
-            <button style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-              Reset Password
-            </button>
-          </a>
-        <p>If you didn’t request this, ignore this email.</p>
-        `,
+    getOtpEmailTemplate(
+      userData.name || 'User',
+      resetOtp,
+      'Reset Your Password',
+      'Please use the following 6-digit OTP to reset your password:'
+    )
   );
 
-  return { message: 'Reset password email sent' };
+  return { message: 'Password reset OTP sent successfully!' };
 };
 
 const resetPassword = async (token: string, payload: { password: string }) => {
@@ -185,7 +197,7 @@ const register = async (payload: TRegisterUser) => {
       phone,
       username: finalUsername,
       role: 'USER',
-      status: 'ACTIVE',
+      status: 'INACTIVE',
       profilePicture:
         'https://i.ibb.co.com/q2gwGfV/356306451-54b19ada-d53e-4ee9-8882-9dfed1bf1396.jpg',
     },
@@ -202,6 +214,41 @@ const register = async (payload: TRegisterUser) => {
       updatedAt: true,
     },
   });
+
+  // Generate 6-digit OTP
+  const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Save OTP in DB
+  await prisma.verificationCode.upsert({
+    where: {
+      email_type: {
+        email,
+        type: 'REGISTER_VERIFY',
+      },
+    },
+    update: {
+      code: verificationCode,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+    },
+    create: {
+      email,
+      code: verificationCode,
+      type: 'REGISTER_VERIFY',
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    },
+  });
+
+  // Send email with OTP
+  await emailSender(
+    'Verify Your Email',
+    email,
+    getOtpEmailTemplate(
+      name,
+      verificationCode,
+      'Verify Your Email',
+      'Thank you for registering. Please use the following 6-digit verification code to verify your email address:'
+    )
+  );
 
   return result;
 };
@@ -300,10 +347,186 @@ const socialLogin = async (payload: TSocialLoginPayload) => {
   };
 };
 
+const verifyEmail = async (payload: TVerifyEmailPayload) => {
+  const { email, code } = payload;
+
+  const record = await prisma.verificationCode.findUnique({
+    where: {
+      email_type: {
+        email,
+        type: 'REGISTER_VERIFY',
+      },
+    },
+  });
+
+  if (!record) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Verification code not found or expired!');
+  }
+
+  if (record.code !== code) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid verification code!');
+  }
+
+  if (new Date() > record.expiresAt) {
+    throw new ApiError(httpStatus.GONE, 'Verification code has expired!');
+  }
+
+  const user = await prisma.user.update({
+    where: { email },
+    data: { status: 'ACTIVE' },
+  });
+
+  await prisma.verificationCode.delete({
+    where: {
+      email_type: {
+        email,
+        type: 'REGISTER_VERIFY',
+      },
+    },
+  });
+
+  const accessToken = jwtHelper.generateToken(
+    {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    },
+    config.jwt.accessToken as string,
+    config.jwt.accessTokenExpiresIn as string,
+  );
+
+  const refreshToken = jwtHelper.generateToken(
+    {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    },
+    config.jwt.refreshToken as string,
+    config.jwt.refreshTokenExpiresIn as string,
+  );
+
+  return {
+    message: 'Email verified successfully!',
+    accessToken,
+    refreshToken,
+  };
+};
+
+const verifyOtp = async (payload: TVerifyOtpPayload) => {
+  const { email, code } = payload;
+
+  const record = await prisma.verificationCode.findUnique({
+    where: {
+      email_type: {
+        email,
+        type: 'PASSWORD_RESET',
+      },
+    },
+  });
+
+  if (!record) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'OTP code not found or expired!');
+  }
+
+  if (record.code !== code) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid OTP code!');
+  }
+
+  if (new Date() > record.expiresAt) {
+    throw new ApiError(httpStatus.GONE, 'OTP code has expired!');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
+  }
+
+  const resetToken = jwtHelper.generateToken(
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
+    config.jwt.reset_pass_secret as Secret,
+    config.jwt.reset_pass_token_expires_in as string,
+  );
+
+  await prisma.verificationCode.delete({
+    where: {
+      email_type: {
+        email,
+        type: 'PASSWORD_RESET',
+      },
+    },
+  });
+
+  return {
+    message: 'OTP verified successfully!',
+    resetToken,
+  };
+};
+
+const resendOtp = async (payload: TResendOtpPayload) => {
+  const { email, type } = payload;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
+  }
+
+  const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+  await prisma.verificationCode.upsert({
+    where: {
+      email_type: {
+        email,
+        type,
+      },
+    },
+    update: {
+      code: newCode,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    },
+    create: {
+      email,
+      code: newCode,
+      type,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    },
+  });
+
+  const subject = type === 'REGISTER_VERIFY' ? 'Verify Your Email' : 'Reset Your Password';
+  const messageText = type === 'REGISTER_VERIFY' 
+    ? 'Please use the following code to verify your email address:'
+    : 'Please use the following code to reset your password:';
+
+  await emailSender(
+    subject,
+    email,
+    getOtpEmailTemplate(
+      user.name,
+      newCode,
+      subject,
+      messageText
+    )
+  );
+
+  return { message: 'Verification code resent successfully!' };
+};
+
 export const AuthServices = {
   login,
   register,
   socialLogin,
+  verifyEmail,
+  verifyOtp,
+  resendOtp,
   forgotPassword,
   resetPassword,
 };

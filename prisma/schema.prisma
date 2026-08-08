@@ -40,3 +40,20 @@ model User {
 
   @@map("users")
 }
+
+enum VerificationType {
+  REGISTER_VERIFY
+  PASSWORD_RESET
+}
+
+model VerificationCode {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  code      String
+  type      VerificationType
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+
+  @@unique([email, type])
+  @@map("verification_codes")
+}

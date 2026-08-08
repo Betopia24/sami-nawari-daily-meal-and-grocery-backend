@@ -7,6 +7,18 @@ import { AuthServices } from './auth.service';
 
 const login = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthServices.login(req.body);
+
+  if ('isEmailVerified' in result) {
+    return sendResponse(res, {
+      statusCode: 403,
+      success: false,
+      message: 'Please verify your email first!',
+      data: {
+        isEmailVerified: false,
+      },
+    });
+  }
+
   const { accessToken, refreshToken } = result;
 
   const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
@@ -114,10 +126,67 @@ const socialLogin = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const verifyEmail = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthServices.verifyEmail(req.body);
+  const { accessToken, refreshToken, message } = result;
+
+  const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+
+  res.cookie('accessToken', accessToken, {
+    secure: isSecure,
+    httpOnly: true,
+    sameSite: isSecure ? 'none' : 'lax',
+    maxAge: 1000 * 60 * 60 * 24 * 365,
+  });
+  res.cookie('refreshToken', refreshToken, {
+    secure: isSecure,
+    httpOnly: true,
+    sameSite: isSecure ? 'none' : 'lax',
+    maxAge: 1000 * 60 * 60 * 24 * 365,
+  });
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message,
+    data: {
+      accessToken,
+      refreshToken,
+    },
+  });
+});
+
+const verifyOtp = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthServices.verifyOtp(req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: result.message,
+    data: {
+      resetToken: result.resetToken,
+    },
+  });
+});
+
+const resendOtp = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthServices.resendOtp(req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: result.message,
+    data: null,
+  });
+});
+
 export const AuthController = {
   login,
   register,
   socialLogin,
+  verifyEmail,
+  verifyOtp,
+  resendOtp,
   logout,
   forgotPassword,
   resetPassword,

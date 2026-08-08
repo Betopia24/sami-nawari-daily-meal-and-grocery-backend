@@ -18,6 +18,21 @@ router.post(
   AuthController.socialLogin
 )
 router.post("/login", AuthController.login)
+router.post(
+  "/verify-email",
+  validateRequest(AuthValidation.verifyEmailValidationSchema),
+  AuthController.verifyEmail
+)
+router.post(
+  "/verify-otp",
+  validateRequest(AuthValidation.verifyOtpValidationSchema),
+  AuthController.verifyOtp
+)
+router.post(
+  "/resend-otp",
+  validateRequest(AuthValidation.resendOtpValidationSchema),
+  AuthController.resendOtp
+)
 router.post("/logout", AuthController.logout)
 router.post("/forgot-password", AuthController.forgotPassword);
 router.post("/reset-password", AuthController.resetPassword);
