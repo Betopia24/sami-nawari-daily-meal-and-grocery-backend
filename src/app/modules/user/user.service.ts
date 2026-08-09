@@ -5,13 +5,14 @@ import { Request } from "express";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import { PrismaQueryBuilder } from "../../utils/QueryBuilder";
-import { UserRole } from "@prisma/client";
+import { UserRole, UserStatus } from "@prisma/client";
 import {
   TUpdateProfilePayload,
   TUpdatePasswordPayload,
   TUpdateLanguageRegionPayload,
   TUpdateDietaryPreferencesPayload,
-  TUpdateAllergiesPayload
+  TUpdateAllergiesPayload,
+  TChangeUserStatusPayload
 } from "./user.interface";
 
 const createUser = async (req: Request) => {
@@ -330,6 +331,28 @@ const userUpdateAllergies = async (userId: string, payload: TUpdateAllergiesPayl
   return userWithoutPassword;
 };
 
+const changeUserStatus = async (userId: string, payload: TChangeUserStatusPayload) => {
+  const { status } = payload;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      status,
+    },
+  });
+
+  const { password: _, ...userWithoutPassword } = updatedUser;
+  return userWithoutPassword;
+};
+
 const deleteUser = async (userId: string) => {
   return prisma.user.delete({
     where: { id: userId },
@@ -346,5 +369,6 @@ export const UserService = {
   userUpdateLanguageRegion,
   userUpdateDietaryPreferences,
   userUpdateAllergies,
+  changeUserStatus,
   deleteUser,
 };

@@ -1,3 +1,5 @@
+import { UserStatus } from "@prisma/client";
+
 export interface TUpdateProfilePayload {
   name?: string;
   phone?: string;
@@ -40,4 +42,8 @@ export interface TUpdateDietaryPreferencesPayload {
 
 export interface TUpdateAllergiesPayload {
   allergies: string[];
+}
+
+export interface TChangeUserStatusPayload {
+  status: UserStatus;
 }

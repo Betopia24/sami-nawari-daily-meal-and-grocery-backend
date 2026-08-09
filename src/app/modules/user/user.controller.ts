@@ -150,6 +150,20 @@ const userUpdateAllergies = catchAsync(async (req: Request & { user?: any }, res
     });
 })
 
+const changeUserStatus = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.params.id;
+    const payload = req.body;
+
+    const result = await UserService.changeUserStatus(userId, payload);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: 200,
+        message: "User status updated successfully",
+        data: result
+    });
+})
+
 export const UserController = {
     createUser,
     getAllUsers,
@@ -160,5 +174,6 @@ export const UserController = {
     userUpdateLanguageRegion,
     userUpdateDietaryPreferences,
     userUpdateAllergies,
+    changeUserStatus,
     deleteUser
 };

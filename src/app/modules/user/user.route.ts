@@ -58,6 +58,13 @@ router.patch(
     UserController.userUpdateAllergies
 );
 
+router.patch(
+    "/change-status/:id",
+    auth(UserRole.ADMIN),
+    validateRequest(userValidation.changeUserStatusValidationSchema),
+    UserController.changeUserStatus
+);
+
 router.delete("/:id", auth(UserRole.ADMIN), UserController.deleteUser);
 
 

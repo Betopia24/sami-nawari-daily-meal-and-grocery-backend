@@ -700,6 +700,40 @@
           "response": []
         },
         {
+          "name": "change user status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SUSPENDED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/change-status/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "change-status",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "69d9dc8ea2e2270e8027eecc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "delete",
           "request": {
             "method": "DELETE",
