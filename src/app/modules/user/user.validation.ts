@@ -26,6 +26,13 @@ const updateUserValidationSchema = z.object({
   isSeller: z.boolean().optional(),
   dietaryPreferences: z.array(z.string()).optional(),
   allergies: z.array(z.string()).optional(),
+  language: z.string().optional(),
+  country: z.string().optional(),
+  timeZone: z.string().optional(),
+  dateFormat: z.string().optional(),
+  timeFormat: z.string().optional(),
+  units: z.string().optional(),
+  currency: z.string().optional(),
 });
 
 const updatePasswordValidationSchema = z.object({
@@ -33,9 +40,30 @@ const updatePasswordValidationSchema = z.object({
   newPassword: z.string().min(6, 'New password must be at least 6 characters'),
 });
 
+const updateLanguageRegionValidationSchema = z.object({
+  language: z.string().optional(),
+  country: z.string().optional(),
+  timeZone: z.string().optional(),
+  dateFormat: z.string().optional(),
+  timeFormat: z.string().optional(),
+  units: z.string().optional(),
+  currency: z.string().optional(),
+});
+
+const updateDietaryPreferencesValidationSchema = z.object({
+  dietaryPreferences: z.array(z.string()),
+});
+
+const updateAllergiesValidationSchema = z.object({
+  allergies: z.array(z.string()),
+});
+
 export const userValidation = {
   createUserValidationSchema,
   registerUserValidationSchema,
   updateUserValidationSchema,
   updatePasswordValidationSchema,
+  updateLanguageRegionValidationSchema,
+  updateDietaryPreferencesValidationSchema,
+  updateAllergiesValidationSchema,
 };

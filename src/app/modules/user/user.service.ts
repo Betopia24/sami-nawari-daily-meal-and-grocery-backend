@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import bcrypt from "bcryptjs";
 import { Request } from "express";
@@ -5,7 +6,13 @@ import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import { PrismaQueryBuilder } from "../../utils/QueryBuilder";
 import { UserRole } from "@prisma/client";
-import { TUpdateProfilePayload, TUpdatePasswordPayload } from "./user.interface";
+import {
+  TUpdateProfilePayload,
+  TUpdatePasswordPayload,
+  TUpdateLanguageRegionPayload,
+  TUpdateDietaryPreferencesPayload,
+  TUpdateAllergiesPayload
+} from "./user.interface";
 
 const createUser = async (req: Request) => {
   const { password, name, email, role, phone, username, isSeller, dietaryPreferences, allergies } = req.body;
@@ -76,7 +83,8 @@ const createUser = async (req: Request) => {
     },
   });
 
-  return result;
+  const { password: _, ...userWithoutPassword } = result;
+  return userWithoutPassword;
 };
 
 
@@ -140,9 +148,12 @@ const getAllUsers = async (query: Record<string, any>) => {
 
 
 const getSingleUser = async (userId: string) => {
-  return prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
   });
+  if (!user) return null;
+  const { password: _, ...userWithoutPassword } = user;
+  return userWithoutPassword;
 };
 
 const userUpdateProfile = async (userId: string, payload: TUpdateProfilePayload) => {
@@ -196,7 +207,8 @@ const userUpdateProfile = async (userId: string, payload: TUpdateProfilePayload)
     data: updateData,
   });
 
-  return updatedUser;
+  const { password: _, ...userWithoutPassword } = updatedUser;
+  return userWithoutPassword;
 };
 
 const userUpdatePassword = async (userId: string, payload: TUpdatePasswordPayload) => {
@@ -236,6 +248,88 @@ const userUpdatePassword = async (userId: string, payload: TUpdatePasswordPayloa
   return { message: "Password updated successfully" };
 };
 
+const userUpdateLanguageRegion = async (userId: string, payload: TUpdateLanguageRegionPayload) => {
+  const {
+    language,
+    country,
+    timeZone,
+    dateFormat,
+    timeFormat,
+    units,
+    currency,
+  } = payload;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const updateData: any = {};
+
+  if (language !== undefined) updateData.language = language;
+  if (country !== undefined) updateData.country = country;
+  if (timeZone !== undefined) updateData.timeZone = timeZone;
+  if (dateFormat !== undefined) updateData.dateFormat = dateFormat;
+  if (timeFormat !== undefined) updateData.timeFormat = timeFormat;
+  if (units !== undefined) updateData.units = units;
+  if (currency !== undefined) updateData.currency = currency;
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: updateData,
+  });
+
+  const { password: _, ...userWithoutPassword } = updatedUser;
+  return userWithoutPassword;
+};
+
+const userUpdateDietaryPreferences = async (userId: string, payload: TUpdateDietaryPreferencesPayload) => {
+  const { dietaryPreferences } = payload;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      dietaryPreferences,
+    },
+  });
+
+  const { password: _, ...userWithoutPassword } = updatedUser;
+  return userWithoutPassword;
+};
+
+const userUpdateAllergies = async (userId: string, payload: TUpdateAllergiesPayload) => {
+  const { allergies } = payload;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      allergies,
+    },
+  });
+
+  const { password: _, ...userWithoutPassword } = updatedUser;
+  return userWithoutPassword;
+};
+
 const deleteUser = async (userId: string) => {
   return prisma.user.delete({
     where: { id: userId },
@@ -249,5 +343,8 @@ export const UserService = {
   getSingleUser,
   userUpdateProfile,
   userUpdatePassword,
+  userUpdateLanguageRegion,
+  userUpdateDietaryPreferences,
+  userUpdateAllergies,
   deleteUser,
 };

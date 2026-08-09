@@ -2,7 +2,9 @@
 import { Request, Response } from "express";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
+import { fileUpload } from "../../utils/fileUpload";
 import { UserService } from "./user.service";
+import { userValidation } from "./user.validation";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
     const user = await UserService.createUser(req);
@@ -58,9 +60,21 @@ const getFindUserById = catchAsync(async (req: Request & { user?: any }, res: Re
 
 const userUpdateProfile = catchAsync(async (req: Request & { user?: any }, res: Response) => {
     const decodedUser = req.user as any;
-    const payload = req.body;
+    let payload = req.body;
+    if (req.body.data) {
+        payload = JSON.parse(req.body.data);
+    }
 
-    const result = await UserService.userUpdateProfile(decodedUser.userId, payload)
+    const validatedData = await userValidation.updateUserValidationSchema.parseAsync(payload);
+
+    if (req.file) {
+        const uploadResult = await fileUpload.uploadToCloudinary(req.file);
+        if (uploadResult && uploadResult.secure_url) {
+            validatedData.profilePicture = uploadResult.secure_url;
+        }
+    }
+
+    const result = await UserService.userUpdateProfile(decodedUser.userId, validatedData)
 
     sendResponse(res, {
         success: true,
@@ -94,6 +108,48 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
     })
 });
 
+const userUpdateLanguageRegion = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+    const decodedUser = req.user as any;
+    const payload = req.body;
+
+    const result = await UserService.userUpdateLanguageRegion(decodedUser.userId, payload)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: 200,
+        message: "Language and region settings updated successfully",
+        data: result
+    });
+})
+
+const userUpdateDietaryPreferences = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+    const decodedUser = req.user as any;
+    const payload = req.body;
+
+    const result = await UserService.userUpdateDietaryPreferences(decodedUser.userId, payload)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: 200,
+        message: "Dietary preferences updated successfully",
+        data: result
+    });
+})
+
+const userUpdateAllergies = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+    const decodedUser = req.user as any;
+    const payload = req.body;
+
+    const result = await UserService.userUpdateAllergies(decodedUser.userId, payload)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: 200,
+        message: "Allergies and intolerances updated successfully",
+        data: result
+    });
+})
+
 export const UserController = {
     createUser,
     getAllUsers,
@@ -101,5 +157,8 @@ export const UserController = {
     getFindUserById,
     userUpdateProfile,
     userUpdatePassword,
+    userUpdateLanguageRegion,
+    userUpdateDietaryPreferences,
+    userUpdateAllergies,
     deleteUser
 };

@@ -10,9 +10,34 @@ export interface TUpdateProfilePayload {
   isSeller?: boolean;
   dietaryPreferences?: string[];
   allergies?: string[];
+  language?: string;
+  country?: string;
+  timeZone?: string;
+  dateFormat?: string;
+  timeFormat?: string;
+  units?: string;
+  currency?: string;
 }
 
 export interface TUpdatePasswordPayload {
   oldPassword?: string;
   newPassword?: string;
+}
+
+export interface TUpdateLanguageRegionPayload {
+  language?: string;
+  country?: string;
+  timeZone?: string;
+  dateFormat?: string;
+  timeFormat?: string;
+  units?: string;
+  currency?: string;
+}
+
+export interface TUpdateDietaryPreferencesPayload {
+  dietaryPreferences: string[];
+}
+
+export interface TUpdateAllergiesPayload {
+  allergies: string[];
 }

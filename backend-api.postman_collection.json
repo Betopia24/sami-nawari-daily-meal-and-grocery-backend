@@ -619,6 +619,87 @@
           ]
         },
         {
+          "name": "update language region",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"language\": \"English\",\n  \"country\": \"United States\",\n  \"timeZone\": \"GMT-5\",\n  \"dateFormat\": \"MM/DD/YYYY\",\n  \"timeFormat\": \"12-hour\",\n  \"units\": \"Imperial\",\n  \"currency\": \"USD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/update-language-region",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "update-language-region"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update dietary preferences",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dietaryPreferences\": [\n    \"Vegetarian\",\n    \"Halal\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/update-dietary-preferences",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "update-dietary-preferences"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update allergies",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"allergies\": [\n    \"Eggs\",\n    \"Peanuts\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/update-allergies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "update-allergies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "delete",
           "request": {
             "method": "DELETE",

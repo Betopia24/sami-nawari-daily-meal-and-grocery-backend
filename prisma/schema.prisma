@@ -35,6 +35,13 @@ model User {
   isSeller           Boolean    @default(false)
   dietaryPreferences String[]
   allergies          String[]
+  language           String?
+  country            String?
+  timeZone           String?
+  dateFormat         String?
+  timeFormat         String?
+  units              String?
+  currency           String?
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
 
