@@ -40,6 +40,13 @@ router.get(
 
 
 router.get(
+  "/admin/sellers",
+  auth(UserRole.ADMIN),
+  SellerController.getAllSellers
+);
+
+
+router.get(
   "/admin/requests/:id",
   auth(UserRole.ADMIN),
   SellerController.getSellerRequestById

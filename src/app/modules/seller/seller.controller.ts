@@ -96,6 +96,18 @@ const getAllSellerRequests = catchAsync(async (req: Request, res: Response) => {
 });
 
 
+const getAllSellers = catchAsync(async (req: Request, res: Response) => {
+  const result = await SellerService.getAllSellers(req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Sellers retrieved successfully",
+    data: result,
+  });
+});
+
+
 const getSellerRequestById = catchAsync(async (req: Request, res: Response) => {
   const result = await SellerService.getSellerRequestById(req.params.id);
 
@@ -129,6 +141,7 @@ export const SellerController = {
   getMySellerProfile,
   updateSellerProfile,
   getAllSellerRequests,
+  getAllSellers,
   getSellerRequestById,
   approveOrRejectSellerRequest,
 };

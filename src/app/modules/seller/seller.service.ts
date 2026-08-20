@@ -133,13 +133,39 @@ const updateSellerProfile = async (
 
 
 const getAllSellerRequests = async (query: Record<string, any>) => {
-  const qb = new PrismaQueryBuilder(query)
+  const { searchTerm, ...restQuery } = query;
+
+  const qb = new PrismaQueryBuilder(restQuery)
     .filter()
-    .search(["businessName", "ownerName", "phone"])
     .sort()
     .paginate();
 
   const prismaQuery = qb.build();
+
+  // Only return requests with PENDING status
+  prismaQuery.where = {
+    ...prismaQuery.where,
+    status: SellerRequestStatus.PENDING,
+  };
+
+  if (searchTerm) {
+    prismaQuery.where = {
+      ...prismaQuery.where,
+      OR: [
+        { businessName: { contains: searchTerm, mode: "insensitive" } },
+        { ownerName: { contains: searchTerm, mode: "insensitive" } },
+        { phone: { contains: searchTerm, mode: "insensitive" } },
+        {
+          user: {
+            OR: [
+              { name: { contains: searchTerm, mode: "insensitive" } },
+              { email: { contains: searchTerm, mode: "insensitive" } },
+            ],
+          },
+        },
+      ],
+    };
+  }
 
   const [data, total] = await Promise.all([
     prisma.sellerProfile.findMany({
@@ -153,6 +179,96 @@ const getAllSellerRequests = async (query: Record<string, any>) => {
             id: true,
             name: true,
             email: true,
+            role: true,
+            isSeller: true,
+            status: true,
+            profilePicture: true,
+          },
+        },
+      },
+    }),
+    prisma.sellerProfile.count({ where: prismaQuery.where }),
+  ]);
+
+  return {
+    meta: qb.getMeta(total),
+    data,
+  };
+};
+
+
+const getAllSellers = async (query: Record<string, any>) => {
+  const { searchTerm, status, ...restQuery } = query;
+
+  const qb = new PrismaQueryBuilder(restQuery)
+    .filter()
+    .sort()
+    .paginate();
+
+  const prismaQuery = qb.build();
+
+  // Custom status filtering
+  if (status) {
+    if (status === "SUSPENDED") {
+      prismaQuery.where = {
+        ...prismaQuery.where,
+        user: {
+          status: "SUSPENDED",
+        },
+      };
+    } else if (status === "APPROVED") {
+      prismaQuery.where = {
+        ...prismaQuery.where,
+        status: "APPROVED",
+        user: {
+          status: {
+            not: "SUSPENDED",
+          },
+        },
+      };
+    } else {
+      prismaQuery.where = {
+        ...prismaQuery.where,
+        status: status,
+      };
+    }
+  }
+
+  // Custom nested searching (businessName, ownerName, phone, user.name, user.email)
+  if (searchTerm) {
+    prismaQuery.where = {
+      ...prismaQuery.where,
+      OR: [
+        { businessName: { contains: searchTerm, mode: "insensitive" } },
+        { ownerName: { contains: searchTerm, mode: "insensitive" } },
+        { phone: { contains: searchTerm, mode: "insensitive" } },
+        {
+          user: {
+            OR: [
+              { name: { contains: searchTerm, mode: "insensitive" } },
+              { email: { contains: searchTerm, mode: "insensitive" } },
+            ],
+          },
+        },
+      ],
+    };
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.sellerProfile.findMany({
+      where: prismaQuery.where,
+      orderBy: prismaQuery.orderBy,
+      skip: prismaQuery.skip,
+      take: prismaQuery.take,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            isSeller: true,
+            status: true,
             profilePicture: true,
           },
         },
@@ -265,6 +381,7 @@ export const SellerService = {
   getMySellerProfile,
   updateSellerProfile,
   getAllSellerRequests,
+  getAllSellers,
   getSellerRequestById,
   approveOrRejectSellerRequest,
 };
