@@ -6,6 +6,8 @@ import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import { PrismaQueryBuilder } from "../../utils/QueryBuilder";
 import { UserRole, UserStatus } from "@prisma/client";
+import config from "../../config";
+import { jwtHelper } from "../../utils/JwtHelper";
 import {
   TUpdateProfilePayload,
   TUpdatePasswordPayload,
@@ -74,7 +76,7 @@ const createUser = async (req: Request) => {
       name,
       email,
       password: hashPassword,
-      role: role ?? UserRole.USER,
+      role: role ?? UserRole.BUYER,
       phone,
       username: finalUsername,
       isSeller: isSeller ?? false,
@@ -359,6 +361,51 @@ const deleteUser = async (userId: string) => {
   });
 };
 
+const switchUserRole = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Only approved sellers (isSeller=true) can switch roles
+  if (!user.isSeller) {
+    throw new ApiError(403, "You are not an approved seller. Please apply to become a seller first.");
+  }
+
+  // Toggle between BUYER and SELLER
+  const newRole = user.role === UserRole.SELLER ? UserRole.BUYER : UserRole.SELLER;
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: { role: newRole },
+  });
+
+  // Generate fresh tokens with the new role
+  const tokenPayload = {
+    userId: updatedUser.id,
+    email: updatedUser.email,
+    role: updatedUser.role,
+  };
+
+  const accessToken = jwtHelper.generateToken(
+    tokenPayload,
+    config.jwt.accessToken as string,
+    config.jwt.accessTokenExpiresIn as string,
+  );
+
+  const refreshToken = jwtHelper.generateToken(
+    tokenPayload,
+    config.jwt.refreshToken as string,
+    config.jwt.refreshTokenExpiresIn as string,
+  );
+
+  const { password: _, ...userWithoutPassword } = updatedUser;
+  return { user: userWithoutPassword, accessToken, refreshToken };
+};
+
 export const UserService = {
   createUser,
   getAllUsers,
@@ -371,4 +418,5 @@ export const UserService = {
   userUpdateAllergies,
   changeUserStatus,
   deleteUser,
+  switchUserRole,
 };

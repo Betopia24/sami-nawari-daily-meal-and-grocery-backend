@@ -164,6 +164,38 @@ const changeUserStatus = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+const switchUserRole = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+    const decodedUser = req.user as any;
+
+    const result = await UserService.switchUserRole(decodedUser.userId);
+
+    const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+
+    res.cookie('accessToken', result.accessToken, {
+        secure: isSecure,
+        httpOnly: true,
+        sameSite: isSecure ? 'none' : 'lax',
+        maxAge: 1000 * 60 * 60 * 24 * 365,
+    });
+    res.cookie('refreshToken', result.refreshToken, {
+        secure: isSecure,
+        httpOnly: true,
+        sameSite: isSecure ? 'none' : 'lax',
+        maxAge: 1000 * 60 * 60 * 24 * 365,
+    });
+
+    sendResponse(res, {
+        success: true,
+        statusCode: 200,
+        message: `Switched to ${result.user.role.charAt(0) + result.user.role.slice(1).toLowerCase()} mode successfully`,
+        data: {
+            user: result.user,
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+        }
+    });
+})
+
 export const UserController = {
     createUser,
     getAllUsers,
@@ -175,5 +207,6 @@ export const UserController = {
     userUpdateDietaryPreferences,
     userUpdateAllergies,
     changeUserStatus,
-    deleteUser
+    deleteUser,
+    switchUserRole
 };

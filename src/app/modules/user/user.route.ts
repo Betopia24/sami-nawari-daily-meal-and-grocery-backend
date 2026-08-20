@@ -9,7 +9,7 @@ import { userValidation } from "./user.validation";
 const router = express.Router();
 
 
-router.get("/me", auth(UserRole.USER, UserRole.ADMIN), UserController.getSingleUser);
+router.get("/me", auth(UserRole.BUYER, UserRole.SELLER, UserRole.ADMIN), UserController.getSingleUser);
 
 
 router.get("/:id", auth(UserRole.ADMIN), UserController.getFindUserById);
@@ -25,35 +25,35 @@ router.get("/", auth(UserRole.ADMIN), UserController.getAllUsers);
 
 router.patch(
     "/update-profile",
-    auth(UserRole.USER, UserRole.ADMIN),
+    auth(UserRole.BUYER, UserRole.SELLER, UserRole.ADMIN),
     fileUpload.upload.single("file"),
     UserController.userUpdateProfile
 );
 
 router.patch(
     "/update-password",
-    auth(UserRole.USER, UserRole.ADMIN),
+    auth(UserRole.BUYER, UserRole.SELLER, UserRole.ADMIN),
     validateRequest(userValidation.updatePasswordValidationSchema),
     UserController.userUpdatePassword
 );
 
 router.patch(
     "/update-language-region",
-    auth(UserRole.USER, UserRole.ADMIN),
+    auth(UserRole.BUYER, UserRole.SELLER, UserRole.ADMIN),
     validateRequest(userValidation.updateLanguageRegionValidationSchema),
     UserController.userUpdateLanguageRegion
 );
 
 router.patch(
     "/update-dietary-preferences",
-    auth(UserRole.USER, UserRole.ADMIN),
+    auth(UserRole.BUYER, UserRole.SELLER, UserRole.ADMIN),
     validateRequest(userValidation.updateDietaryPreferencesValidationSchema),
     UserController.userUpdateDietaryPreferences
 );
 
 router.patch(
     "/update-allergies",
-    auth(UserRole.USER, UserRole.ADMIN),
+    auth(UserRole.BUYER, UserRole.SELLER, UserRole.ADMIN),
     validateRequest(userValidation.updateAllergiesValidationSchema),
     UserController.userUpdateAllergies
 );
@@ -66,6 +66,13 @@ router.patch(
 );
 
 router.delete("/:id", auth(UserRole.ADMIN), UserController.deleteUser);
+
+// Switch role between BUYER and SELLER (only for approved sellers)
+router.patch(
+    "/switch-role",
+    auth(UserRole.BUYER, UserRole.SELLER),
+    UserController.switchUserRole
+);
 
 
 

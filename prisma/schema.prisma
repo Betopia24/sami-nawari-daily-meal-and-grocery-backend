@@ -9,7 +9,8 @@ datasource db {
 
 enum UserRole {
   ADMIN
-  USER
+  BUYER
+  SELLER
 }
 
 enum UserStatus {
@@ -18,21 +19,36 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum SellerRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CuisineType {
+  MEDITERRANEAN
+  ITALIAN
+  CHINESE
+  INDIAN
+  MEXICAN
+  OTHER
+}
+
 model User {
-  id                 String     @id @default(auto()) @map("_id") @db.ObjectId
+  id                 String          @id @default(auto()) @map("_id") @db.ObjectId
   name               String
   password           String?
-  email              String     @unique
-  role               UserRole   @default(USER)
-  status             UserStatus @default(ACTIVE)
+  email              String          @unique
+  role               UserRole        @default(BUYER)
+  status             UserStatus      @default(ACTIVE)
   phone              String?
   profilePicture     String?
-  username           String?    @unique
+  username           String?         @unique
   bio                String?
   birthday           String?
   gender             String?
   address            String?
-  isSeller           Boolean    @default(false)
+  isSeller           Boolean         @default(false)
   dietaryPreferences String[]
   allergies          String[]
   language           String?
@@ -42,10 +58,33 @@ model User {
   timeFormat         String?
   units              String?
   currency           String?
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  sellerProfile      SellerProfile?
 
   @@map("users")
+}
+
+model SellerProfile {
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String              @unique @db.ObjectId
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName      String
+  ownerName         String
+  phone             String
+  cuisineTypes      CuisineType[]
+  description       String
+  address           String
+  workingHours      Json?
+  pickupAvailable   Boolean             @default(false)
+  deliveryAvailable Boolean             @default(false)
+  governmentId      String?
+  status            SellerRequestStatus @default(PENDING)
+  adminNote         String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@map("seller_profiles")
 }
 
 enum VerificationType {

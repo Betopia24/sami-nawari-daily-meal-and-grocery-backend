@@ -196,7 +196,7 @@ const register = async (payload: TRegisterUser) => {
       password: hashedPassword,
       phone,
       username: finalUsername,
-      role: 'USER',
+      role: 'BUYER',
       status: 'INACTIVE',
       profilePicture:
         'https://i.ibb.co.com/q2gwGfV/356306451-54b19ada-d53e-4ee9-8882-9dfed1bf1396.jpg',
@@ -308,7 +308,7 @@ const socialLogin = async (payload: TSocialLoginPayload) => {
         profilePicture:
           picture ||
           'https://i.ibb.co.com/q2gwGfV/356306451-54b19ada-d53e-4ee9-8882-9dfed1bf1396.jpg',
-        role: 'USER',
+        role: 'BUYER',
         status: 'ACTIVE',
       },
     });
