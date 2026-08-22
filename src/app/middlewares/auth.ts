@@ -5,6 +5,8 @@ import httpStatus from 'http-status';
 import config from "../config";
 import ApiError from "../errors/apiError";
 import { jwtHelper } from "../utils/JwtHelper";
+import { prisma } from "../prisma/prisma";
+import { UserStatus } from "@prisma/client";
 
 const auth = (...roles: string[]) => {
     return async (req: Request & { user?: any }, res: Response, next: NextFunction) => {
@@ -21,20 +23,33 @@ const auth = (...roles: string[]) => {
 
             const secret = (config.jwt.accessToken || process.env.JWT_ACCESS_SECRET) as string;
 
-            let user;
+            let decoded;
             try {
-                user = jwtHelper.verifyToken(token, secret);
+                decoded = jwtHelper.verifyToken(token, secret);
             } catch (error) {
                 throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid or expired token!");
             }
 
-            if (!user) {
+            if (!decoded) {
                 throw new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized!");
             }
 
-            req.user = user;
+            const dbUser = await prisma.user.findUnique({
+                where: { id: decoded.userId },
+                select: { id: true, role: true, status: true },
+            });
 
-            if (roles.length && !roles.includes(user.role)) {
+            if (!dbUser) {
+                throw new ApiError(httpStatus.UNAUTHORIZED, "User not found!");
+            }
+
+            if (dbUser.status !== UserStatus.ACTIVE) {
+                throw new ApiError(httpStatus.FORBIDDEN, "Your account has been suspended or deactivated.");
+            }
+
+            req.user = decoded;
+
+            if (roles.length && !roles.includes(decoded.role)) {
                 throw new ApiError(httpStatus.FORBIDDEN, "You don't have permission to access this resource!");
             }
 
@@ -47,4 +62,3 @@ const auth = (...roles: string[]) => {
 }
 
 export default auth;
-
