@@ -1,12 +1,3 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
-}
-
 enum UserRole {
   ADMIN
   BUYER
@@ -19,19 +10,9 @@ enum UserStatus {
   SUSPENDED
 }
 
-enum SellerRequestStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum CuisineType {
-  MEDITERRANEAN
-  ITALIAN
-  CHINESE
-  INDIAN
-  MEXICAN
-  OTHER
+enum VerificationType {
+  REGISTER_VERIFY
+  PASSWORD_RESET
 }
 
 model User {
@@ -58,38 +39,21 @@ model User {
   timeFormat         String?
   units              String?
   currency           String?
+  fcmToken           String?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   sellerProfile      SellerProfile?
+  foods              Food[]
+
+  // Collaborative Grocery Relations
+  createdGroceries   GroceryList[]       @relation("GroceryCreator")
+  groceryMemberships GroceryMember[]     @relation("GroceryUserMember")
+  addedItems         GroceryItem[]       @relation("ItemAddedBy")
+  completedItems     GroceryItem[]       @relation("ItemCompletedBy")
+  sentInvitations    GroceryInvitation[] @relation("InvitationInvitedBy")
+  notifications      Notification[]
 
   @@map("users")
-}
-
-model SellerProfile {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String              @unique @db.ObjectId
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  businessName      String
-  ownerName         String
-  phone             String
-  cuisineTypes      CuisineType[]
-  description       String
-  address           String
-  workingHours      Json?
-  pickupAvailable   Boolean             @default(false)
-  deliveryAvailable Boolean             @default(false)
-  governmentId      String?
-  status            SellerRequestStatus @default(PENDING)
-  adminNote         String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-
-  @@map("seller_profiles")
-}
-
-enum VerificationType {
-  REGISTER_VERIFY
-  PASSWORD_RESET
 }
 
 model VerificationCode {

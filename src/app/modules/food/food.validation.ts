@@ -1,0 +1,55 @@
+import { z } from "zod";
+import { FoodCategory, FoodStatus } from "@prisma/client";
+
+const ingredientSchema = z.object({
+  name: z.string().min(1, "Ingredient name is required"),
+  quantity: z.number().min(0, "Quantity must be at least 0"),
+  unit: z.string().min(1, "Unit is required"),
+});
+
+const createFoodSchema = z.object({
+  name: z.string().min(1, "Food name is required"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  images: z.array(z.string()).min(1, "At least one food image is required"),
+  category: z.nativeEnum(FoodCategory, {
+    message: "Category must be BREAKFAST, LUNCH, DINNER, or SNACKS",
+  }),
+  price: z.number().min(0, "Price must be at least 0"),
+  preparationTime: z.string().min(1, "Preparation time is required"),
+  ingredients: z.array(ingredientSchema).min(1, "At least one ingredient is required"),
+  pickupAvailable: z.boolean().optional().default(false),
+  deliveryAvailable: z.boolean().optional().default(false),
+  deliveryFee: z.number().min(0, "Delivery fee must be at least 0").optional().default(0),
+});
+
+const updateFoodSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().min(10).optional(),
+  images: z.array(z.string()).optional(),
+  category: z.nativeEnum(FoodCategory).optional(),
+  price: z.number().min(0).optional(),
+  preparationTime: z.string().optional(),
+  ingredients: z.array(ingredientSchema).optional(),
+  pickupAvailable: z.boolean().optional(),
+  deliveryAvailable: z.boolean().optional(),
+  deliveryFee: z.number().min(0).optional(),
+});
+
+const reviewFoodSchema = z.object({
+  status: z.enum([FoodStatus.PUBLISHED, FoodStatus.REJECTED], {
+    message: "Status must be PUBLISHED or REJECTED",
+  }),
+});
+
+const visibilityFoodSchema = z.object({
+  status: z.enum([FoodStatus.PUBLISHED, FoodStatus.HIDDEN], {
+    message: "Status must be PUBLISHED or HIDDEN",
+  }),
+});
+
+export const foodValidation = {
+  createFoodSchema,
+  updateFoodSchema,
+  reviewFoodSchema,
+  visibilityFoodSchema,
+};
