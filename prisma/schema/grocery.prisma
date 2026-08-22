@@ -1,0 +1,119 @@
+enum GroceryRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum GroceryInvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum GroceryPriority {
+  NO_PRIORITY
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum GroceryUnit {
+  KG
+  G
+  L
+  ML
+  PCS
+  PACKET
+  BOTTLE
+  BOX
+  CAN
+  DOZEN
+  BUNDLE
+  BAG
+  OTHER
+}
+
+enum GroceryCategory {
+  MEAT
+  FISH
+  CHICKEN
+  BAKERY
+  PANTRY
+  BEVERAGES
+  FROZEN_FOOD
+  CLEANING
+  BABY_CARE
+  PERSONAL_CARE
+  OTHER
+}
+
+enum GroceryItemStatus {
+  PENDING
+  COMPLETED
+}
+
+model GroceryList {
+  id           String              @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  description  String?
+  creatorId    String              @db.ObjectId
+  creator      User                @relation("GroceryCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  items        GroceryItem[]
+  members      GroceryMember[]
+  invitations  GroceryInvitation[]
+
+  @@map("grocery_lists")
+}
+
+model GroceryMember {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  groceryListId String      @db.ObjectId
+  groceryList   GroceryList @relation(fields: [groceryListId], references: [id], onDelete: Cascade)
+  userId        String      @db.ObjectId
+  user          User        @relation("GroceryUserMember", fields: [userId], references: [id], onDelete: Cascade)
+  role          GroceryRole
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([groceryListId, userId])
+  @@map("grocery_members")
+}
+
+model GroceryItem {
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  groceryListId String            @db.ObjectId
+  groceryList   GroceryList       @relation(fields: [groceryListId], references: [id], onDelete: Cascade)
+  name          String
+  quantity      Float             @default(1)
+  unit          GroceryUnit       @default(PCS)
+  category      GroceryCategory   @default(OTHER)
+  priority      GroceryPriority   @default(NO_PRIORITY)
+  notes         String?
+  status        GroceryItemStatus @default(PENDING)
+  addedById     String            @db.ObjectId
+  addedBy       User              @relation("ItemAddedBy", fields: [addedById], references: [id], onDelete: Cascade)
+  completedById String?           @db.ObjectId
+  completedBy   User?             @relation("ItemCompletedBy", fields: [completedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@map("grocery_items")
+}
+
+model GroceryInvitation {
+  id            String                  @id @default(auto()) @map("_id") @db.ObjectId
+  groceryListId String                  @db.ObjectId
+  groceryList   GroceryList             @relation(fields: [groceryListId], references: [id], onDelete: Cascade)
+  email         String
+  role          GroceryRole             @default(VIEWER)
+  status        GroceryInvitationStatus @default(PENDING)
+  invitedById   String                  @db.ObjectId
+  invitedBy     User                    @relation("InvitationInvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  @@unique([groceryListId, email])
+  @@map("grocery_invitations")
+}
