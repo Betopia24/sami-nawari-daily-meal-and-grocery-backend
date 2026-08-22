@@ -3,6 +3,8 @@
 
 import { excludeField } from "../constants";
 
+const rangeFields = ["priceMin", "priceMax"];
+
 export class PrismaQueryBuilder<TWhere = any> {
   public where: TWhere = {} as TWhere;
   public orderBy: any = {};
@@ -15,7 +17,7 @@ export class PrismaQueryBuilder<TWhere = any> {
   filter(): this {
     const filter = { ...this.query };
 
-    for (const field of excludeField) {
+    for (const field of [...excludeField, ...rangeFields]) {
       delete filter[field];
     }
 
@@ -52,6 +54,24 @@ export class PrismaQueryBuilder<TWhere = any> {
     this.orderBy = {
       [sortBy]: sortOrder,
     };
+
+    return this;
+  }
+
+  rangeFilter(): this {
+    const { priceMin, priceMax } = this.query;
+
+    if (priceMin !== undefined || priceMax !== undefined) {
+      const priceCondition: Record<string, number> = {};
+
+      if (priceMin !== undefined) priceCondition.gte = Number(priceMin);
+      if (priceMax !== undefined) priceCondition.lte = Number(priceMax);
+
+      this.where = {
+        ...this.where,
+        price: priceCondition,
+      };
+    }
 
     return this;
   }

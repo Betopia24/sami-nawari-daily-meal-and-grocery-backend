@@ -1,0 +1,36 @@
+enum SellerRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CuisineType {
+  MEDITERRANEAN
+  ITALIAN
+  CHINESE
+  INDIAN
+  MEXICAN
+  OTHER
+}
+
+model SellerProfile {
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String              @unique @db.ObjectId
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName      String
+  ownerName         String
+  phone             String
+  cuisineTypes      CuisineType[]
+  description       String
+  address           String
+  workingHours      Json?
+  pickupAvailable   Boolean             @default(false)
+  deliveryAvailable Boolean             @default(false)
+  governmentId      String?
+  status            SellerRequestStatus @default(PENDING)
+  adminNote         String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@map("seller_profiles")
+}
