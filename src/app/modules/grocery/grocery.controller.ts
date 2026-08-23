@@ -32,7 +32,7 @@ const getAllGroceryLists = catchAsync(async (req: Request & { user?: any }, res:
 const getGroceryListById = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const decodedUser = req.user as any;
   const groceryListId = req.params.groceryListId;
-  const result = await GroceryService.getGroceryListById(groceryListId, decodedUser.userId);
+  const result = await GroceryService.getGroceryListById(groceryListId as string, decodedUser.userId);
 
   sendResponse(res, {
     statusCode: 200,
@@ -45,7 +45,7 @@ const getGroceryListById = catchAsync(async (req: Request & { user?: any }, res:
 const updateGroceryList = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const decodedUser = req.user as any;
   const groceryListId = req.params.groceryListId;
-  const result = await GroceryService.updateGroceryList(groceryListId, decodedUser.userId, req.body);
+  const result = await GroceryService.updateGroceryList(groceryListId as string, decodedUser.userId, req.body);
 
   sendResponse(res, {
     statusCode: 200,
@@ -58,7 +58,7 @@ const updateGroceryList = catchAsync(async (req: Request & { user?: any }, res: 
 const deleteGroceryList = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const decodedUser = req.user as any;
   const groceryListId = req.params.groceryListId;
-  const result = await GroceryService.deleteGroceryList(groceryListId, decodedUser.userId);
+  const result = await GroceryService.deleteGroceryList(groceryListId as string, decodedUser.userId);
 
   sendResponse(res, {
     statusCode: 200,
@@ -71,7 +71,7 @@ const deleteGroceryList = catchAsync(async (req: Request & { user?: any }, res: 
 const addGroceryItem = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const decodedUser = req.user as any;
   const groceryListId = req.params.groceryListId;
-  const result = await GroceryService.addGroceryItem(groceryListId, decodedUser.userId, req.body);
+  const result = await GroceryService.addGroceryItem(groceryListId as string, decodedUser.userId, req.body);
 
   sendResponse(res, {
     statusCode: 201,
@@ -85,7 +85,7 @@ const updateGroceryItem = catchAsync(async (req: Request & { user?: any }, res: 
   const decodedUser = req.user as any;
   const groceryListId = req.params.groceryListId;
   const itemId = req.params.itemId;
-  const result = await GroceryService.updateGroceryItem(groceryListId, itemId, decodedUser.userId, req.body);
+  const result = await GroceryService.updateGroceryItem(groceryListId as string, itemId as string, decodedUser.userId, req.body);
 
   sendResponse(res, {
     statusCode: 200,
@@ -99,7 +99,7 @@ const deleteGroceryItem = catchAsync(async (req: Request & { user?: any }, res: 
   const decodedUser = req.user as any;
   const groceryListId = req.params.groceryListId;
   const itemId = req.params.itemId;
-  const result = await GroceryService.deleteGroceryItem(groceryListId, itemId, decodedUser.userId);
+  const result = await GroceryService.deleteGroceryItem(groceryListId as string, itemId as string, decodedUser.userId);
 
   sendResponse(res, {
     statusCode: 200,
@@ -112,7 +112,7 @@ const deleteGroceryItem = catchAsync(async (req: Request & { user?: any }, res: 
 const inviteMember = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const decodedUser = req.user as any;
   const groceryListId = req.params.groceryListId;
-  const result = await GroceryService.inviteMember(groceryListId, decodedUser.userId, req.body);
+  const result = await GroceryService.inviteMember(groceryListId as string, decodedUser.userId, req.body);
 
   sendResponse(res, {
     statusCode: 201,
@@ -138,9 +138,9 @@ const respondInvitation = catchAsync(async (req: Request & { user?: any }, res: 
   const decodedUser = req.user as any;
   const invitationId = req.params.invitationId;
   const result = await GroceryService.respondInvitation(
-    invitationId,
-    decodedUser.userId,
-    decodedUser.email,
+    invitationId as string,
+    decodedUser.userId as string,
+    decodedUser.email as string,
     req.body.status
   );
 
@@ -157,9 +157,9 @@ const updateMemberRole = catchAsync(async (req: Request & { user?: any }, res: R
   const groceryListId = req.params.groceryListId;
   const memberId = req.params.memberId;
   const result = await GroceryService.updateMemberRole(
-    groceryListId,
-    memberId,
-    decodedUser.userId,
+    groceryListId as string,
+    memberId as string,
+    decodedUser.userId as string,
     req.body.role
   );
 
@@ -175,7 +175,7 @@ const removeMember = catchAsync(async (req: Request & { user?: any }, res: Respo
   const decodedUser = req.user as any;
   const groceryListId = req.params.groceryListId;
   const memberId = req.params.memberId;
-  const result = await GroceryService.removeMember(groceryListId, memberId, decodedUser.userId);
+  const result = await GroceryService.removeMember(groceryListId as string, memberId as string, decodedUser.userId as string);
 
   sendResponse(res, {
     statusCode: 200,

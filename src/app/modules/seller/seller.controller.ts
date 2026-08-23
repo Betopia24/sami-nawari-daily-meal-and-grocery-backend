@@ -109,7 +109,7 @@ const getAllSellers = catchAsync(async (req: Request, res: Response) => {
 
 
 const getSellerRequestById = catchAsync(async (req: Request, res: Response) => {
-  const result = await SellerService.getSellerRequestById(req.params.id);
+  const result = await SellerService.getSellerRequestById(req.params.id as string);
 
   sendResponse(res, {
     statusCode: 200,
@@ -124,7 +124,7 @@ const approveOrRejectSellerRequest = catchAsync(async (req: Request, res: Respon
   const profileId = req.params.id;
   const payload = req.body;
 
-  const result = await SellerService.approveOrRejectSellerRequest(profileId, payload);
+  const result = await SellerService.approveOrRejectSellerRequest(profileId as string, payload);
 
   const action = payload.status === 'APPROVED' ? 'approved' : 'rejected';
 
