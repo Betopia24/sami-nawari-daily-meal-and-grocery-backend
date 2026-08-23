@@ -6,6 +6,7 @@ import { GroceryRoutes } from "../modules/grocery/grocery.route";
 import { NotificationRoutes } from "../modules/notification/notification.route";
 import { FoodRoutes } from "../modules/food/food.route";
 import { CartRoutes } from "../modules/cart/cart.route";
+import { OrderRoutes } from "../modules/order/order.route";
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use("/grocery", GroceryRoutes);
 router.use("/notifications", NotificationRoutes);
 router.use("/foods", FoodRoutes);
 router.use("/cart", CartRoutes);
+router.use("/orders", OrderRoutes);
 
 export default router;
