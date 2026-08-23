@@ -1,3 +1,4 @@
+import { PaymentMethod } from "@prisma/client";
 import { z } from "zod";
 
 const deliveryAddressSchema = z.object({
@@ -13,6 +14,9 @@ const createOrderSchema = z.object({
   recipientName: z.string().min(1, "Recipient name is required"),
   contactPhone: z.string().min(1, "Contact phone is required"),
   note: z.string().optional(),
+  paymentMethod: z.nativeEnum(PaymentMethod, {
+    message: "Payment method must be CASH_ON_DELIVERY or ONLINE",
+  }),
 });
 
 export const orderValidation = {

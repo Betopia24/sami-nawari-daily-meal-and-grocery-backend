@@ -15,6 +15,12 @@ enum PaymentStatus {
   PAID
   FAILED
   CANCELLED
+  UNPAID
+}
+
+enum PaymentMethod {
+  CASH_ON_DELIVERY
+  ONLINE
 }
 
 type DeliveryAddressSnapshot {
@@ -50,10 +56,12 @@ model Order {
   totalPrice      Float
   status          OrderStatus             @default(PENDING_PAYMENT)
   paymentStatus   PaymentStatus           @default(PENDING)
+  paymentMethod   PaymentMethod           @default(CASH_ON_DELIVERY)
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
 
   @@index([userId])
   @@index([createdAt])
+  @@index([userId, createdAt(sort: Desc)])
   @@map("orders")
 }

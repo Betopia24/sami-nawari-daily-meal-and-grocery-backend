@@ -1,3 +1,5 @@
+import { PaymentMethod } from "@prisma/client";
+
 export type TDeliveryAddress = {
   streetAddress: string;
   city: string;
@@ -11,4 +13,5 @@ export type TCreateOrderPayload = {
   recipientName: string;
   contactPhone: string;
   note?: string;
+  paymentMethod: PaymentMethod;
 };
