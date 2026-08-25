@@ -99,7 +99,7 @@ const userUpdatePassword = catchAsync(async (req: Request & { user?: any }, res:
 })
 
 const deleteUser = catchAsync(async (req: Request, res: Response) => {
-    const user = await UserService.deleteUser(req.params.id);
+    const user = await UserService.deleteUser(req.params.id as string);
     sendResponse(res, {
         statusCode: 200,
         success: true,
@@ -154,7 +154,7 @@ const changeUserStatus = catchAsync(async (req: Request, res: Response) => {
     const userId = req.params.id;
     const payload = req.body;
 
-    const result = await UserService.changeUserStatus(userId, payload);
+    const result = await UserService.changeUserStatus(userId as string, payload);
 
     sendResponse(res, {
         success: true,

@@ -18,8 +18,8 @@ const getMyNotifications = catchAsync(async (req: Request & { user?: any }, res:
 
 const markAsRead = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const decodedUser = req.user as any;
-  const notificationId = req.params.id;
-  const result = await NotificationService.markAsRead(decodedUser.userId, notificationId);
+  const notificationId = req.params.id as string;
+  const result = await NotificationService.markAsRead(decodedUser.userId as string, notificationId as string);
 
   sendResponse(res, {
     statusCode: 200,
