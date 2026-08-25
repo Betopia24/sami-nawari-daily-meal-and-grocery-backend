@@ -14,6 +14,10 @@ const parseFoodPayload = async (req: Request) => {
     payload = JSON.parse(req.body.data);
   }
 
+  console.log("DEBUG parseFoodPayload - req.files:", req.files ? (req.files as any).length : "none");
+  console.log("DEBUG parseFoodPayload - req.file:", req.file ? "present" : "none");
+  console.log("DEBUG parseFoodPayload - req.body.data:", req.body.data);
+
   if (typeof payload.ingredients === "string") {
     payload.ingredients = JSON.parse(payload.ingredients);
   }
@@ -37,6 +41,11 @@ const parseFoodPayload = async (req: Request) => {
       if (uploadResult && uploadResult.secure_url) {
         imageUrls.push(uploadResult.secure_url);
       }
+    }
+  } else if (req.file) {
+    const uploadResult = await fileUpload.uploadToCloudinary(req.file);
+    if (uploadResult && uploadResult.secure_url) {
+      imageUrls.push(uploadResult.secure_url);
     }
   }
 
