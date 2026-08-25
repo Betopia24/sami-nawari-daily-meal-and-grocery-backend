@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FoodStatus, OrderStatus, PaymentStatus, UserStatus, PaymentMethod } from "@prisma/client";
+import { FoodStatus, OrderStatus, PaymentStatus, UserStatus, PaymentMethod, OutboxEventType, OutboxStatus } from "@prisma/client";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import redis from "../../utils/redisClient";
+import { outboxQueue } from "../../jobs/queue";
 import { TCreateOrderPayload } from "./order.interface";
 
 const createOrder = async (userId: string, payload: TCreateOrderPayload) => {
@@ -124,7 +125,7 @@ const createOrder = async (userId: string, payload: TCreateOrderPayload) => {
       : PaymentStatus.PENDING;
 
     // 5. Database transaction for Order Creation & Splitting
-    const parentOrder = await prisma.$transaction(async (tx) => {
+    const { parentOrder, outboxEvent } = await prisma.$transaction(async (tx) => {
       // Create the Parent Order
       const parent = await tx.order.create({
         data: {
@@ -183,8 +184,27 @@ const createOrder = async (userId: string, payload: TCreateOrderPayload) => {
         index++;
       }
 
-      return parent;
+      // Create the Outbox Event atomically
+      const event = await tx.outboxEvent.create({
+        data: {
+          eventType: OutboxEventType.ORDER_CREATED,
+          payload: {
+            id: parent.id,
+            orderNumber: parent.orderNumber,
+          },
+          status: OutboxStatus.PENDING,
+        },
+      });
+
+      return { parentOrder: parent, outboxEvent: event };
     });
+
+    try {
+      await outboxQueue.add(OutboxEventType.ORDER_CREATED, { outboxId: outboxEvent.id });
+      console.log(` Enqueued ${OutboxEventType.ORDER_CREATED} outbox event ${outboxEvent.id} in BullMQ`);
+    } catch (queueErr) {
+      console.error(" Failed to enqueue outbox event in BullMQ:", queueErr);
+    }
 
     // 6. Safe cart clearance: only remove purchased fields to avoid wiping concurrent cart changes
     try {
@@ -527,6 +547,26 @@ const updateOrderStatus = async (sellerId: string, orderId: string, newStatus: O
     });
 
     await updateParentOrderStatus(order.parentId);
+
+    // Fire-and-forget: Create outbox event for status update notification to buyer
+    try {
+      const outboxEvent = await prisma.outboxEvent.create({
+        data: {
+          eventType: OutboxEventType.ORDER_STATUS_UPDATED,
+          payload: {
+            childOrderId: updatedOrder.id,
+            childOrderNumber: updatedOrder.orderNumber,
+            parentOrderId: order.parentId,
+            newStatus: updatedOrder.status,
+            buyerId: updatedOrder.userId,
+          },
+          status: OutboxStatus.PENDING,
+        },
+      });
+      await outboxQueue.add(OutboxEventType.ORDER_STATUS_UPDATED, { outboxId: outboxEvent.id });
+    } catch (notifErr) {
+      console.error("Failed to queue order status update notification:", notifErr);
+    }
 
     return updatedOrder;
   } finally {

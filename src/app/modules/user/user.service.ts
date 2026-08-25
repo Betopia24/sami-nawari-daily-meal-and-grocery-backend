@@ -117,7 +117,16 @@ const findUserById = async (id: string) => {
 
 
 const getAllUsers = async (query: Record<string, any>) => {
-  const qb = new PrismaQueryBuilder(query)
+  // Normalize enum query parameters to uppercase to prevent case-sensitive mismatches with Prisma
+  const normalizedQuery = { ...query };
+  if (normalizedQuery.status && typeof normalizedQuery.status === "string") {
+    normalizedQuery.status = normalizedQuery.status.toUpperCase();
+  }
+  if (normalizedQuery.role && typeof normalizedQuery.role === "string") {
+    normalizedQuery.role = normalizedQuery.role.toUpperCase();
+  }
+
+  const qb = new PrismaQueryBuilder(normalizedQuery)
     .filter()
     .search(["name", "email"])
     .sort()
@@ -134,17 +143,28 @@ const getAllUsers = async (query: Record<string, any>) => {
         name: true,
         email: true,
         role: true,
+        status: true,
         profilePicture: true,
         createdAt: true,
         updatedAt: true,
+        _count: {
+          select: {
+            orders: true,
+          },
+        },
       },
     }),
     prisma.user.count({ where: prismaQuery.where }),
   ]);
 
+  const mappedData = data.map((user) => ({
+    ...user,
+    ordersCount: user._count?.orders ?? 0,
+  }));
+
   return {
     meta: qb.getMeta(total),
-    data,
+    data: mappedData,
   };
 };
 

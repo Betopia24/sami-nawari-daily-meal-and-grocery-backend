@@ -3,6 +3,14 @@ import app from "./app";
 import config from "./app/config";
 import { seedAdmin } from "./app/utils/seedAdmin";
 import initializeFirebase from "./app/utils/firebase";
+import { initializeSocket } from "./app/utils/socketHelper";
+import { startOutboxScheduler } from "./app/jobs/outboxWorker";
+
+// Import workers to ensure they start listening to queues
+import "./app/jobs/outboxWorker";
+import "./app/jobs/emailWorker";
+import "./app/jobs/fcmWorker";
+import "./app/jobs/socketWorker";
 
 async function bootstrap() {
     let server: Server;
@@ -11,6 +19,11 @@ async function bootstrap() {
         initializeFirebase();
         server = http.createServer(app);
 
+        // Initialize Socket.io with Redis Adapter
+        initializeSocket(server);
+
+        // Start Outbox repeatable cron poller
+        await startOutboxScheduler();
 
         server.listen(config.port, () => {
             console.log(`🚀 Server is running on http://localhost:${config.port}`);
