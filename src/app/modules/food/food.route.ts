@@ -32,14 +32,14 @@ router.get(
 router.post(
   "/",
   auth(UserRole.SELLER),
-  fileUpload.upload.array("files", 5),
+  fileUpload.upload.any(),
   FoodController.createFood
 );
 
 router.patch(
   "/seller/:id",
   auth(UserRole.SELLER),
-  fileUpload.upload.array("files", 5),
+  fileUpload.upload.any(),
   FoodController.updateSellerFood
 );
 

@@ -6,7 +6,12 @@ import config from "../config";
 
 const storage = multer.memoryStorage();
 
-const upload = multer({ storage: storage });
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 50 * 1024 * 1024, // 50 MB
+    },
+});
 
 const uploadToCloudinary = async (file: Express.Multer.File): Promise<any> => {
     cloudinary.config({
