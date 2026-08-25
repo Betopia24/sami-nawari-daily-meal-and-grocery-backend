@@ -77,7 +77,7 @@ const getSellerFoods = catchAsync(async (req: Request & { user?: any }, res: Res
 
 const getSellerFoodDetails = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const decodedUser = req.user as any;
-  const result = await FoodService.getSellerFoodDetails(decodedUser.userId, req.params.id);
+  const result = await FoodService.getSellerFoodDetails(decodedUser.userId, req.params.id as string);
 
   sendResponse(res, {
     statusCode: 200,
@@ -93,7 +93,7 @@ const updateSellerFood = catchAsync(async (req: Request & { user?: any }, res: R
 
   const validatedData = await foodValidation.updateFoodSchema.parseAsync(payload);
 
-  const result = await FoodService.updateSellerFood(decodedUser.userId, req.params.id, validatedData);
+  const result = await FoodService.updateSellerFood(decodedUser.userId, req.params.id as string, validatedData);
 
   sendResponse(res, {
     statusCode: 200,
@@ -105,7 +105,7 @@ const updateSellerFood = catchAsync(async (req: Request & { user?: any }, res: R
 
 const deleteSellerFood = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const decodedUser = req.user as any;
-  const result = await FoodService.deleteSellerFood(decodedUser.userId, req.params.id);
+  const result = await FoodService.deleteSellerFood(decodedUser.userId, req.params.id as string);
 
   sendResponse(res, {
     statusCode: 200,
@@ -129,7 +129,7 @@ const getAllFoodsAdmin = catchAsync(async (req: Request, res: Response) => {
 
 const reviewFood = catchAsync(async (req: Request, res: Response) => {
   const validatedBody = await foodValidation.reviewFoodSchema.parseAsync(req.body);
-  const result = await FoodService.reviewFood(req.params.id, validatedBody.status);
+  const result = await FoodService.reviewFood(req.params.id as string, validatedBody.status);
 
   const action = validatedBody.status === FoodStatus.PUBLISHED ? "approved & published" : "rejected";
 
@@ -143,7 +143,7 @@ const reviewFood = catchAsync(async (req: Request, res: Response) => {
 
 const toggleFoodVisibility = catchAsync(async (req: Request, res: Response) => {
   const validatedBody = await foodValidation.visibilityFoodSchema.parseAsync(req.body);
-  const result = await FoodService.toggleFoodVisibility(req.params.id, validatedBody.status);
+  const result = await FoodService.toggleFoodVisibility(req.params.id as string, validatedBody.status);
 
   const action = validatedBody.status === FoodStatus.HIDDEN ? "hidden" : "unhidden & published";
 
@@ -156,7 +156,7 @@ const toggleFoodVisibility = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteFoodAdmin = catchAsync(async (req: Request, res: Response) => {
-  const result = await FoodService.deleteFoodAdmin(req.params.id);
+  const result = await FoodService.deleteFoodAdmin(req.params.id as string);
 
   sendResponse(res, {
     statusCode: 200,
@@ -180,7 +180,7 @@ const getPublishedFoods = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getFoodDetails = catchAsync(async (req: Request, res: Response) => {
-  const result = await FoodService.getFoodDetails(req.params.id);
+  const result = await FoodService.getFoodDetails(req.params.id as string);
 
   sendResponse(res, {
     statusCode: 200,

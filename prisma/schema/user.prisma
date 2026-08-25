@@ -44,6 +44,7 @@ model User {
   updatedAt          DateTime        @updatedAt
   sellerProfile      SellerProfile?
   foods              Food[]
+  orders             Order[]
 
   // Collaborative Grocery Relations
   createdGroceries   GroceryList[]       @relation("GroceryCreator")

@@ -3,7 +3,27 @@ import { FoodStatus, Prisma, UserStatus } from "@prisma/client";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import { PrismaQueryBuilder } from "../../utils/QueryBuilder";
+import redis from "../../utils/redisClient";
 import { TCreateFoodPayload, TUpdateFoodPayload } from "./food.interface";
+
+const clearFoodCache = async (foodId?: string) => {
+  try {
+    if (foodId) {
+      await redis.del(`food_details:${foodId}`);
+    }
+    // Scan and delete keys matching published_foods:* (prevents blocking Redis event loop)
+    let cursor = "0";
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, "MATCH", "published_foods:*", "COUNT", 100);
+      cursor = nextCursor;
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    } while (cursor !== "0");
+  } catch (error) {
+    console.error("Redis Cache Invalidation Error:", error);
+  }
+};
 
 //* ─── Seller Operations ────────────────────────────────────────────────────────
 
@@ -101,6 +121,8 @@ const updateSellerFood = async (
     },
   });
 
+  await clearFoodCache(foodId);
+
   return updated;
 };
 
@@ -116,6 +138,8 @@ const deleteSellerFood = async (sellerId: string, foodId: string) => {
   const result = await prisma.food.delete({
     where: { id: foodId },
   });
+
+  await clearFoodCache(foodId);
 
   return result;
 };
@@ -180,6 +204,8 @@ const reviewFood = async (foodId: string, status: FoodStatus) => {
     data: { status },
   });
 
+  await clearFoodCache(foodId);
+
   return result;
 };
 
@@ -201,6 +227,8 @@ const toggleFoodVisibility = async (foodId: string, status: FoodStatus) => {
     data: { status },
   });
 
+  await clearFoodCache(foodId);
+
   return result;
 };
 
@@ -217,12 +245,30 @@ const deleteFoodAdmin = async (foodId: string) => {
     where: { id: foodId },
   });
 
+  await clearFoodCache(foodId);
+
   return result;
 };
 
 //* ─── Customer Operations ─────────────────────────────────────────
 
 const getPublishedFoods = async (query: Record<string, any>) => {
+  // Sort query keys to ensure consistent cache keys regardless of param order (e.g. page=1&limit=10 and limit=10&page=1 match the same cache)
+  const sortedQueryStr = Object.keys(query)
+    .sort()
+    .map((k) => `${k}=${encodeURIComponent(String(query[k]))}`)
+    .join("&");
+  const cacheKey = `published_foods:${sortedQueryStr || "default"}`;
+
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (err) {
+    console.error("Redis Read Published Foods Cache Error:", err);
+  }
+
   const filterQuery = { ...query, status: FoodStatus.PUBLISHED };
 
   const qb = new PrismaQueryBuilder(filterQuery)
@@ -259,13 +305,33 @@ const getPublishedFoods = async (query: Record<string, any>) => {
     prisma.food.count({ where: prismaQuery.where }),
   ]);
 
-  return {
+  const result = {
     meta: qb.getMeta(total),
     data,
   };
+
+  try {
+    // Cache listing with 5 minutes (300 seconds) TTL
+    await redis.set(cacheKey, JSON.stringify(result), "EX", 300);
+  } catch (err) {
+    console.error("Redis Write Published Foods Cache Error:", err);
+  }
+
+  return result;
 };
 
 const getFoodDetails = async (foodId: string) => {
+  const cacheKey = `food_details:${foodId}`;
+
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (err) {
+    console.error("Redis Read Food Details Cache Error:", err);
+  }
+
   const food = await prisma.food.findUnique({
     where: { id: foodId },
     include: {
@@ -294,6 +360,13 @@ const getFoodDetails = async (foodId: string) => {
 
   if (food.status !== FoodStatus.PUBLISHED) {
     throw new ApiError(403, "This food listing is not currently available to the public.");
+  }
+
+  try {
+    // Cache food details with 10 minutes (600 seconds) TTL
+    await redis.set(cacheKey, JSON.stringify(food), "EX", 600);
+  } catch (err) {
+    console.error("Redis Write Food Details Cache Error:", err);
   }
 
   return food;
