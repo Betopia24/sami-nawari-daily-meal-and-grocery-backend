@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
 import { PaymentMethod } from "@prisma/client";
 
 export type TDeliveryAddress = {

@@ -1,4 +1,4 @@
-import { PaymentMethod } from "@prisma/client";
+import { OrderStatus, PaymentMethod, PaymentStatus } from "@prisma/client";
 import { z } from "zod";
 
 const deliveryAddressSchema = z.object({
@@ -19,6 +19,24 @@ const createOrderSchema = z.object({
   }),
 });
 
+const updateStatusSchema = z.object({
+  status: z.nativeEnum(OrderStatus),
+});
+
+const adminUpdateStatusSchema = z.object({
+  status: z.nativeEnum(OrderStatus).optional(),
+  paymentStatus: z.nativeEnum(PaymentStatus).optional(),
+});
+
+const updatePaymentStatusSchema = z.object({
+  paymentStatus: z.nativeEnum(PaymentStatus, {
+    message: "Payment status must be PENDING, PAID, FAILED, CANCELLED, or UNPAID",
+  }),
+});
+
 export const orderValidation = {
   createOrderSchema,
+  updateStatusSchema,
+  adminUpdateStatusSchema,
+  updatePaymentStatusSchema,
 };

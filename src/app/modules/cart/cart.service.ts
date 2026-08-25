@@ -23,6 +23,8 @@ const addItemToCart = async (userId: string, payload: TAddToCartPayload) => {
     throw new ApiError(400, "This food item is currently unavailable.");
   }
 
+
+
   try {
     // Atomic HSETNX: sets field ONLY if it doesn't exist — prevents race conditions
     const isNew = await redis.hsetnx(key, foodId, quantity.toString());
