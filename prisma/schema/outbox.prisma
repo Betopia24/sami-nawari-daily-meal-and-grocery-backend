@@ -1,0 +1,24 @@
+enum OutboxStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+enum OutboxEventType {
+  ORDER_CREATED
+  ORDER_STATUS_UPDATED
+}
+
+model OutboxEvent {
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  eventType   OutboxEventType
+  payload     Json            // Full order structure
+  status      OutboxStatus    @default(PENDING)
+  error       String?
+  attempts    Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([status, createdAt])
+  @@map("outbox_events")
+}
