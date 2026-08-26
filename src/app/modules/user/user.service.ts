@@ -5,7 +5,7 @@ import { Request } from "express";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import { PrismaQueryBuilder } from "../../utils/QueryBuilder";
-import { UserRole, UserStatus } from "@prisma/client";
+import { UserRole, UserStatus, SellerRequestStatus } from "@prisma/client";
 import config from "../../config";
 import { jwtHelper } from "../../utils/JwtHelper";
 import {
@@ -119,13 +119,24 @@ const findUserById = async (id: string) => {
 const getAllUsers = async (query: Record<string, any>) => {
   // Normalize enum query parameters to uppercase to prevent case-sensitive mismatches with Prisma
   const normalizedQuery = { ...query };
+  let isPendingStatus = false;
+
   if (normalizedQuery.status && typeof normalizedQuery.status === "string") {
     const statusUpper = normalizedQuery.status.toUpperCase();
-    if (!Object.values(UserStatus).includes(statusUpper as any)) {
-      throw new ApiError(400, `Invalid status value. Expected one of: ${Object.values(UserStatus).join(", ")}`);
+    if (statusUpper === SellerRequestStatus.PENDING) {
+      isPendingStatus = true;
+      delete normalizedQuery.status;
+    } else {
+      if (!Object.values(UserStatus).includes(statusUpper as any)) {
+        throw new ApiError(
+          400,
+          `Invalid status value. Expected one of: ${Object.values(UserStatus).join(", ")}, or ${SellerRequestStatus.PENDING}`
+        );
+      }
+      normalizedQuery.status = statusUpper;
     }
-    normalizedQuery.status = statusUpper;
   }
+
   if (normalizedQuery.role && typeof normalizedQuery.role === "string") {
     const roleUpper = normalizedQuery.role.toUpperCase();
     if (!Object.values(UserRole).includes(roleUpper as any)) {
@@ -142,6 +153,15 @@ const getAllUsers = async (query: Record<string, any>) => {
     .paginate();
 
   const prismaQuery = qb.build();
+
+  if (isPendingStatus) {
+    prismaQuery.where = {
+      ...prismaQuery.where,
+      sellerProfile: {
+        status: SellerRequestStatus.PENDING,
+      },
+    };
+  }
 
   const [data, total] = await Promise.all([
     prisma.user.findMany({
