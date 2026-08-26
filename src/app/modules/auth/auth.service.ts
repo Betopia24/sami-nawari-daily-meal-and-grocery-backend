@@ -31,6 +31,10 @@ const login = async (payload: { email: string; password: string }) => {
     throw new ApiError(401, 'Invalid credentials');
   }
 
+  if (user.status === 'SUSPENDED') {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Your account has been suspended. Please contact support.');
+  }
+
   if (user.status === 'INACTIVE') {
     return {
       isEmailVerified: false,
