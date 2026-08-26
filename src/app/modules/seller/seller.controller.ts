@@ -4,6 +4,7 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { fileUpload } from "../../utils/fileUpload";
 import { SellerService } from "./seller.service";
+import { sellerValidation } from "./seller.validation";
 
 
 const submitSellerRequest = catchAsync(async (req: Request & { user?: any }, res: Response) => {
@@ -26,7 +27,16 @@ const submitSellerRequest = catchAsync(async (req: Request & { user?: any }, res
     payload.workingHours = JSON.parse(payload.workingHours);
   }
 
-  const result = await SellerService.submitSellerRequest(decodedUser.userId, payload);
+  if (payload.latitude !== undefined) {
+    payload.latitude = Number(payload.latitude);
+  }
+  if (payload.longitude !== undefined) {
+    payload.longitude = Number(payload.longitude);
+  }
+
+  const validatedData = await sellerValidation.submitSellerRequestSchema.parseAsync(payload);
+
+  const result = await SellerService.submitSellerRequest(decodedUser.userId, validatedData);
 
   sendResponse(res, {
     statusCode: 201,
@@ -73,7 +83,16 @@ const updateSellerProfile = catchAsync(async (req: Request & { user?: any }, res
     payload.workingHours = JSON.parse(payload.workingHours);
   }
 
-  const result = await SellerService.updateSellerProfile(decodedUser.userId, payload);
+  if (payload.latitude !== undefined) {
+    payload.latitude = Number(payload.latitude);
+  }
+  if (payload.longitude !== undefined) {
+    payload.longitude = Number(payload.longitude);
+  }
+
+  const validatedData = await sellerValidation.updateSellerProfileSchema.parseAsync(payload);
+
+  const result = await SellerService.updateSellerProfile(decodedUser.userId, validatedData);
 
   sendResponse(res, {
     statusCode: 200,

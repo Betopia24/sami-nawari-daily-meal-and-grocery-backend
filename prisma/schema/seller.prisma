@@ -23,6 +23,8 @@ model SellerProfile {
   cuisineTypes      CuisineType[]
   description       String
   address           String
+  latitude          Float?
+  longitude         Float?
   workingHours      Json?
   pickupAvailable   Boolean             @default(false)
   deliveryAvailable Boolean             @default(false)
