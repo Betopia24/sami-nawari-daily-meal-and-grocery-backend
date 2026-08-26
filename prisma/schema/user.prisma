@@ -45,6 +45,7 @@ model User {
   sellerProfile      SellerProfile?
   foods              Food[]
   orders             Order[]
+  bookmarks          Bookmark[]
 
   // Collaborative Grocery Relations
   createdGroceries   GroceryList[]       @relation("GroceryCreator")
