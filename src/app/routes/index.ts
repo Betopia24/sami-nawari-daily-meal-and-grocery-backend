@@ -7,6 +7,7 @@ import { NotificationRoutes } from "../modules/notification/notification.route";
 import { FoodRoutes } from "../modules/food/food.route";
 import { CartRoutes } from "../modules/cart/cart.route";
 import { OrderRoutes } from "../modules/order/order.route";
+import { BookmarkRoutes } from "../modules/bookmark/bookmark.route";
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use("/notifications", NotificationRoutes);
 router.use("/foods", FoodRoutes);
 router.use("/cart", CartRoutes);
 router.use("/orders", OrderRoutes);
+router.use("/bookmarks", BookmarkRoutes);
 
 export default router;
