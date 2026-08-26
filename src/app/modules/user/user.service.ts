@@ -175,6 +175,11 @@ const getAllUsers = async (query: Record<string, any>) => {
         profilePicture: true,
         createdAt: true,
         updatedAt: true,
+        sellerProfile: {
+          select: {
+            status: true,
+          },
+        },
         _count: {
           select: {
             orders: true,
@@ -185,10 +190,18 @@ const getAllUsers = async (query: Record<string, any>) => {
     prisma.user.count({ where: prismaQuery.where }),
   ]);
 
-  const mappedData = data.map((user) => ({
-    ...user,
-    ordersCount: user._count?.orders ?? 0,
-  }));
+  const mappedData = data.map((user) => {
+    let status = user.status as string;
+    if (user.sellerProfile?.status === SellerRequestStatus.PENDING) {
+      status = "PENDING";
+    }
+    const { sellerProfile, ...rest } = user;
+    return {
+      ...rest,
+      status,
+      ordersCount: user._count?.orders ?? 0,
+    };
+  });
 
   return {
     meta: qb.getMeta(total),

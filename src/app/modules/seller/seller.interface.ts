@@ -7,7 +7,9 @@ export interface TSubmitSellerRequestPayload {
   cuisineTypes: CuisineType[];
   description: string;
   address: string;
-  workingHours?: Record<string, { open: string; close: string; isOpen: boolean }>;
+  latitude?: number;
+  longitude?: number;
+  workingHours?: Record<string, { open?: string; close?: string; isOpen: boolean }>;
   pickupAvailable?: boolean;
   deliveryAvailable?: boolean;
   governmentId?: string;
@@ -20,7 +22,9 @@ export interface TUpdateSellerProfilePayload {
   cuisineTypes?: CuisineType[];
   description?: string;
   address?: string;
-  workingHours?: Record<string, { open: string; close: string; isOpen: boolean }>;
+  latitude?: number;
+  longitude?: number;
+  workingHours?: Record<string, { open?: string; close?: string; isOpen: boolean }>;
   pickupAvailable?: boolean;
   deliveryAvailable?: boolean;
   governmentId?: string;
