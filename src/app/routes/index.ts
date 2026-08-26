@@ -8,6 +8,7 @@ import { FoodRoutes } from "../modules/food/food.route";
 import { CartRoutes } from "../modules/cart/cart.route";
 import { OrderRoutes } from "../modules/order/order.route";
 import { BookmarkRoutes } from "../modules/bookmark/bookmark.route";
+import { ReviewRoutes } from "../modules/review/review.route";
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use("/foods", FoodRoutes);
 router.use("/cart", CartRoutes);
 router.use("/orders", OrderRoutes);
 router.use("/bookmarks", BookmarkRoutes);
+router.use("/reviews", ReviewRoutes);
 
 export default router;

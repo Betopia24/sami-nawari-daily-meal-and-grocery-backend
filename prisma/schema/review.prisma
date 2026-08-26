@@ -1,0 +1,25 @@
+enum ReviewStatus {
+  PUBLISHED
+  HIDDEN
+}
+
+model Review {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String       @db.ObjectId
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodId    String       @db.ObjectId
+  food      Food         @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  orderId   String       @db.ObjectId
+  order     Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String
+  status    ReviewStatus @default(PUBLISHED)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([userId, orderId, foodId])
+  @@index([foodId])
+  @@index([userId])
+  @@index([orderId])
+  @@map("reviews")
+}
