@@ -120,10 +120,18 @@ const getAllUsers = async (query: Record<string, any>) => {
   // Normalize enum query parameters to uppercase to prevent case-sensitive mismatches with Prisma
   const normalizedQuery = { ...query };
   if (normalizedQuery.status && typeof normalizedQuery.status === "string") {
-    normalizedQuery.status = normalizedQuery.status.toUpperCase();
+    const statusUpper = normalizedQuery.status.toUpperCase();
+    if (!Object.values(UserStatus).includes(statusUpper as any)) {
+      throw new ApiError(400, `Invalid status value. Expected one of: ${Object.values(UserStatus).join(", ")}`);
+    }
+    normalizedQuery.status = statusUpper;
   }
   if (normalizedQuery.role && typeof normalizedQuery.role === "string") {
-    normalizedQuery.role = normalizedQuery.role.toUpperCase();
+    const roleUpper = normalizedQuery.role.toUpperCase();
+    if (!Object.values(UserRole).includes(roleUpper as any)) {
+      throw new ApiError(400, `Invalid role value. Expected one of: ${Object.values(UserRole).join(", ")}`);
+    }
+    normalizedQuery.role = roleUpper;
   }
 
   const qb = new PrismaQueryBuilder(normalizedQuery)
