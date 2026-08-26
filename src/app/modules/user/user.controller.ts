@@ -98,8 +98,9 @@ const userUpdatePassword = catchAsync(async (req: Request & { user?: any }, res:
     });
 })
 
-const deleteUser = catchAsync(async (req: Request, res: Response) => {
-    const user = await UserService.deleteUser(req.params.id as string);
+const deleteUser = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+    const adminId = req.user.userId;
+    const user = await UserService.deleteUser(req.params.id as string, adminId as string);
     sendResponse(res, {
         statusCode: 200,
         success: true,
@@ -150,11 +151,12 @@ const userUpdateAllergies = catchAsync(async (req: Request & { user?: any }, res
     });
 })
 
-const changeUserStatus = catchAsync(async (req: Request, res: Response) => {
+const changeUserStatus = catchAsync(async (req: Request & { user?: any }, res: Response) => {
     const userId = req.params.id;
+    const adminId = req.user.userId;
     const payload = req.body;
 
-    const result = await UserService.changeUserStatus(userId as string, payload);
+    const result = await UserService.changeUserStatus(userId as string, adminId as string, payload);
 
     sendResponse(res, {
         success: true,

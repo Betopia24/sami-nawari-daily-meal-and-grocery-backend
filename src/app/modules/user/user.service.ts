@@ -381,7 +381,7 @@ const userUpdateAllergies = async (userId: string, payload: TUpdateAllergiesPayl
   return userWithoutPassword;
 };
 
-const changeUserStatus = async (userId: string, payload: TChangeUserStatusPayload) => {
+const changeUserStatus = async (userId: string, adminId: string, payload: TChangeUserStatusPayload) => {
   const { status } = payload;
 
   const user = await prisma.user.findUnique({
@@ -390,6 +390,16 @@ const changeUserStatus = async (userId: string, payload: TChangeUserStatusPayloa
 
   if (!user) {
     throw new ApiError(404, "User not found");
+  }
+
+  // Prevent admin from suspending/deactivating themselves
+  if (userId === adminId) {
+    throw new ApiError(400, "You cannot suspend or deactivate your own account.");
+  }
+
+  // Prevent main admin from being suspended or deactivated
+  if (user.email === config.admin.email) {
+    throw new ApiError(403, "The main administrator cannot be suspended or deactivated.");
   }
 
   const updatedUser = await prisma.user.update({
@@ -403,7 +413,25 @@ const changeUserStatus = async (userId: string, payload: TChangeUserStatusPayloa
   return userWithoutPassword;
 };
 
-const deleteUser = async (userId: string) => {
+const deleteUser = async (userId: string, adminId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Prevent admin from deleting themselves
+  if (userId === adminId) {
+    throw new ApiError(400, "You cannot delete your own account.");
+  }
+
+  // Prevent main admin from being deleted
+  if (user.email === config.admin.email) {
+    throw new ApiError(403, "The main administrator cannot be deleted.");
+  }
+
   return prisma.user.delete({
     where: { id: userId },
   });
