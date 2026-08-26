@@ -28,6 +28,7 @@ model Food {
   sellerId          String       @db.ObjectId
   seller            User         @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   bookmarks         Bookmark[]
+  reviews           Review[]
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
@@ -45,4 +46,3 @@ model Bookmark {
   @@unique([userId, foodId])
   @@map("bookmarks")
 }
-

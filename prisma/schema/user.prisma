@@ -46,6 +46,7 @@ model User {
   foods              Food[]
   orders             Order[]
   bookmarks          Bookmark[]
+  reviews            Review[]
 
   // Collaborative Grocery Relations
   createdGroceries   GroceryList[]       @relation("GroceryCreator")
