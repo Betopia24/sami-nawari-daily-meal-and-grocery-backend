@@ -18,7 +18,11 @@ model Review {
   updatedAt DateTime     @updatedAt
 
   @@unique([userId, orderId, foodId])
-  @@index([foodId])
+  // Fix #7 (Performance): Compound index covers the seller-reviews query which always
+  // filters on both foodId AND status: PUBLISHED together, avoiding an in-memory filter pass.
+  @@index([foodId, status])
+  // Covers paginated retrieval sorted by createdAt descending
+  @@index([foodId, status, createdAt(sort: Desc)])
   @@index([userId])
   @@index([orderId])
   @@map("reviews")

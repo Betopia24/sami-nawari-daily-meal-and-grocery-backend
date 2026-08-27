@@ -1,4 +1,4 @@
-import { FoodCategory } from "@prisma/client";
+import { FoodCategory, FoodSubcategory } from "@prisma/client";
 
 export interface TIngredient {
   name: string;
@@ -11,6 +11,7 @@ export interface TCreateFoodPayload {
   description: string;
   images: string[];
   category: FoodCategory;
+  subcategory?: FoodSubcategory;
   price: number;
   preparationTime: string;
   ingredients: TIngredient[];
@@ -24,6 +25,7 @@ export interface TUpdateFoodPayload {
   description?: string;
   images?: string[];
   category?: FoodCategory;
+  subcategory?: FoodSubcategory;
   price?: number;
   preparationTime?: string;
   ingredients?: TIngredient[];

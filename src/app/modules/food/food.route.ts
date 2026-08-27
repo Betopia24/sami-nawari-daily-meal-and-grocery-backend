@@ -77,7 +77,11 @@ router.delete(
   FoodController.deleteFoodAdmin
 );
 
-//* ─── Customer Dynamic Route (must be last to avoid catching /seller, /admin) ─
+
+router.get(
+  "/recipe/:category",
+  FoodController.getRecipeByCategory
+);
 
 router.get(
   "/:id",
