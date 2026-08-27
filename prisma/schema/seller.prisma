@@ -25,6 +25,9 @@ model SellerProfile {
   address           String
   latitude          Float?
   longitude         Float?
+  location          Json?
+  averageRating     Float               @default(0)
+  reviewCount       Int                 @default(0)
   workingHours      Json?
   pickupAvailable   Boolean             @default(false)
   deliveryAvailable Boolean             @default(false)

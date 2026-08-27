@@ -31,11 +31,16 @@ const submitSellerRequest = async (
   }
 
 
+  const location = payload.longitude !== undefined && payload.latitude !== undefined
+    ? { type: "Point", coordinates: [payload.longitude, payload.latitude] }
+    : undefined;
+
   if (user.sellerProfile) {
     const updated = await prisma.sellerProfile.update({
       where: { userId },
       data: {
         ...payload,
+        ...(location && { location }),
         status: SellerRequestStatus.PENDING,
         adminNote: null,
       },
@@ -48,6 +53,7 @@ const submitSellerRequest = async (
     data: {
       userId,
       ...payload,
+      ...(location && { location }),
       cuisineTypes: payload.cuisineTypes ?? [],
       workingHours: payload.workingHours ?? {},
       pickupAvailable: payload.pickupAvailable ?? false,
@@ -110,9 +116,16 @@ const updateSellerProfile = async (
       });
     }
 
+    const location = sellerProfileData.longitude !== undefined && sellerProfileData.latitude !== undefined
+      ? { type: "Point", coordinates: [sellerProfileData.longitude, sellerProfileData.latitude] }
+      : undefined;
+
     return tx.sellerProfile.update({
       where: { userId },
-      data: sellerProfileData,
+      data: {
+        ...sellerProfileData,
+        ...(location && { location }),
+      },
       include: {
         user: {
           select: {
