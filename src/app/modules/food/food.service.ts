@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FoodStatus, Prisma, UserStatus } from "@prisma/client";
+import { FoodCategory, FoodStatus, Prisma, UserStatus, FoodSubcategory } from "@prisma/client";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import { PrismaQueryBuilder } from "../../utils/QueryBuilder";
 import redis from "../../utils/redisClient";
 import { TCreateFoodPayload, TUpdateFoodPayload } from "./food.interface";
+import { categorySubcategoryMap } from "./food.validation";
 
 const clearFoodCache = async (foodId?: string) => {
   try {
@@ -15,6 +16,16 @@ const clearFoodCache = async (foodId?: string) => {
     let cursor = "0";
     do {
       const [nextCursor, keys] = await redis.scan(cursor, "MATCH", "published_foods:*", "COUNT", 100);
+      cursor = nextCursor;
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    } while (cursor !== "0");
+
+    // Scan and delete keys matching published_recipes:*
+    cursor = "0";
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, "MATCH", "published_recipes:*", "COUNT", 100);
       cursor = nextCursor;
       if (keys.length > 0) {
         await redis.del(...keys);
@@ -372,6 +383,110 @@ const getFoodDetails = async (foodId: string) => {
   return food;
 };
 
+const getRecipeByCategory = async (category: string, query: Record<string, any>) => {
+  const categoryUpper = String(category).toUpperCase();
+  if (!Object.values(FoodCategory).includes(categoryUpper as FoodCategory)) {
+    throw new ApiError(
+      400,
+      `Invalid food category. Allowed values: ${Object.values(FoodCategory).join(", ")}`
+    );
+  }
+
+  const normalizedQuery: Record<string, any> = {};
+  for (const key in query) {
+    if (query[key] !== undefined && query[key] !== null && String(query[key]).trim() !== "") {
+      normalizedQuery[key] = query[key];
+    }
+  }
+
+  if (normalizedQuery.subcategory) {
+    const subcategoryUpper = String(normalizedQuery.subcategory).toUpperCase();
+    if (!Object.values(FoodSubcategory).includes(subcategoryUpper as FoodSubcategory)) {
+      throw new ApiError(
+        400,
+        `Invalid food subcategory. Allowed values: ${Object.values(FoodSubcategory).join(", ")}`
+      );
+    }
+    normalizedQuery.subcategory = subcategoryUpper;
+
+    const allowed = categorySubcategoryMap[categoryUpper as FoodCategory];
+    if (!allowed.includes(normalizedQuery.subcategory as FoodSubcategory)) {
+      throw new ApiError(
+        400,
+        `Invalid subcategory for the selected category. Allowed subcategories for ${categoryUpper}: ${allowed.join(", ")}`
+      );
+    }
+  }
+
+  const sortedQueryStr = Object.keys(normalizedQuery)
+    .sort()
+    .map((k) => `${k}=${encodeURIComponent(String(normalizedQuery[k]))}`)
+    .join("&");
+  const cacheKey = `published_recipes:${categoryUpper}:${sortedQueryStr || "default"}`;
+
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (err) {
+    console.error("Redis Read Recipes Cache Error:", err);
+  }
+
+  const filterQuery = {
+    ...normalizedQuery,
+    category: categoryUpper,
+    status: FoodStatus.PUBLISHED,
+  };
+
+  const qb = new PrismaQueryBuilder(filterQuery)
+    .filter()
+    .search(["name", "description"])
+    .rangeFilter()
+    .sort()
+    .paginate();
+
+  const prismaQuery = qb.build();
+
+  const [data, total] = await Promise.all([
+    prisma.food.findMany({
+      where: prismaQuery.where,
+      orderBy: prismaQuery.orderBy,
+      skip: prismaQuery.skip,
+      take: prismaQuery.take,
+      include: {
+        seller: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true,
+            sellerProfile: {
+              select: {
+                businessName: true,
+                address: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.food.count({ where: prismaQuery.where }),
+  ]);
+
+  const result = {
+    meta: qb.getMeta(total),
+    data,
+  };
+
+  try {
+    await redis.set(cacheKey, JSON.stringify(result), "EX", 300);
+  } catch (err) {
+    console.error("Redis Write Recipes Cache Error:", err);
+  }
+
+  return result;
+};
+
 export const FoodService = {
   createFood,
   getSellerFoods,
@@ -384,4 +499,5 @@ export const FoodService = {
   deleteFoodAdmin,
   getPublishedFoods,
   getFoodDetails,
+  getRecipeByCategory,
 };

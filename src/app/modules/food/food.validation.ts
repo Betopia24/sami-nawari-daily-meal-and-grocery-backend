@@ -7,7 +7,7 @@ const ingredientSchema = z.object({
   unit: z.string().min(1, "Unit is required"),
 });
 
-const categorySubcategoryMap: Record<FoodCategory, FoodSubcategory[]> = {
+export const categorySubcategoryMap: Record<FoodCategory, FoodSubcategory[]> = {
   [FoodCategory.BREAKFAST]: [
     FoodSubcategory.HEALTHY,
     FoodSubcategory.QUICK,
@@ -26,7 +26,12 @@ const categorySubcategoryMap: Record<FoodCategory, FoodSubcategory[]> = {
     FoodSubcategory.SPECIAL,
     FoodSubcategory.COMFORT,
   ],
-  [FoodCategory.SNACKS]: [],
+  [FoodCategory.SNACKS]: [
+    FoodSubcategory.SWEET,
+    FoodSubcategory.SAVORY,
+    FoodSubcategory.QUICK,
+    FoodSubcategory.HEALTHY,
+  ],
 };
 
 const createFoodSchema = z.object({
@@ -45,9 +50,6 @@ const createFoodSchema = z.object({
   deliveryFee: z.number().min(0, "Delivery fee must be at least 0").optional().default(0),
 }).refine(
   (data) => {
-    if (data.category === FoodCategory.SNACKS) {
-      return !data.subcategory;
-    }
     if (!data.subcategory) {
       return false;
     }
@@ -75,9 +77,6 @@ const updateFoodSchema = z.object({
 }).refine(
   (data) => {
     if (data.category && data.subcategory) {
-      if (data.category === FoodCategory.SNACKS) {
-        return false;
-      }
       const allowed = categorySubcategoryMap[data.category];
       return allowed.includes(data.subcategory);
     }

@@ -16,6 +16,8 @@ enum FoodSubcategory {
   FAMILY
   SPECIAL
   COMFORT
+  SWEET
+  SAVORY
 }
 
 enum FoodStatus {
