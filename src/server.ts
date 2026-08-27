@@ -5,12 +5,30 @@ import { seedAdmin } from "./app/utils/seedAdmin";
 import initializeFirebase from "./app/utils/firebase";
 import { initializeSocket } from "./app/utils/socketHelper";
 import { startOutboxScheduler } from "./app/jobs/outboxWorker";
+import { prisma } from "./app/prisma/prisma";
 
 // Import workers to ensure they start listening to queues
 import "./app/jobs/outboxWorker";
 import "./app/jobs/emailWorker";
 import "./app/jobs/fcmWorker";
 import "./app/jobs/socketWorker";
+
+async function ensureGeospatialIndex() {
+    try {
+        await prisma.$runCommandRaw({
+            createIndexes: "seller_profiles",
+            indexes: [
+                {
+                    key: { location: "2dsphere" },
+                    name: "location_2dsphere",
+                },
+            ],
+        });
+        console.log("✅ Geospatial 2dsphere index verified/created for seller_profiles.");
+    } catch (error) {
+        console.error("⚠️ Failed to create/verify Geospatial index:", error);
+    }
+}
 
 async function bootstrap() {
     let server: Server;
@@ -24,6 +42,9 @@ async function bootstrap() {
 
         // Start Outbox repeatable cron poller
         await startOutboxScheduler();
+
+        // Ensure 2dsphere index is created in MongoDB
+        await ensureGeospatialIndex();
 
         server.listen(config.port, () => {
             console.log(`🚀 Server is running on http://localhost:${config.port}`);

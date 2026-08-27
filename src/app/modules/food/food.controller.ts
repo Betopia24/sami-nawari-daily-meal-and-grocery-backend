@@ -199,6 +199,17 @@ const getFoodDetails = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getRecipeByCategory = catchAsync(async (req: Request, res: Response) => {
+  const result = await FoodService.getRecipeByCategory(req.params.category as string, req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Recipes retrieved successfully",
+    data: result,
+  });
+});
+
 export const FoodController = {
   createFood,
   getSellerFoods,
@@ -211,4 +222,5 @@ export const FoodController = {
   deleteFoodAdmin,
   getPublishedFoods,
   getFoodDetails,
+  getRecipeByCategory,
 };

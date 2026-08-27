@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { OrderStatus, UserRole, ReviewStatus } from "@prisma/client";
 import ApiError from "../../errors/apiError";
@@ -51,7 +52,50 @@ const submitReview = async (userId: string, payload: TCreateReviewPayload) => {
     },
   });
 
+  // Automatically update seller's averageRating & reviewCount
+  const food = await prisma.food.findUnique({
+    where: { id: payload.foodId },
+    select: { sellerId: true },
+  });
+  if (food?.sellerId) {
+    updateSellerRatingStats(food.sellerId).catch((err) =>
+      console.error("Failed to update seller rating stats:", err)
+    );
+  }
+
   return result;
+};
+
+const updateSellerRatingStats = async (sellerId: string) => {
+  try {
+    const sellerFoods = await prisma.food.findMany({
+      where: { sellerId },
+      select: { id: true },
+    });
+    const foodIds = sellerFoods.map((f) => f.id);
+
+    const aggregation = await prisma.review.aggregate({
+      where: {
+        foodId: { in: foodIds },
+        status: ReviewStatus.PUBLISHED,
+      },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+
+    const averageRating = aggregation._avg.rating ? parseFloat(aggregation._avg.rating.toFixed(1)) : 0;
+    const reviewCount = aggregation._count.rating || 0;
+
+    await prisma.sellerProfile.update({
+      where: { userId: sellerId },
+      data: {
+        averageRating,
+        reviewCount,
+      },
+    });
+  } catch (error) {
+    console.error(`Error updating rating stats for seller ${sellerId}:`, error);
+  }
 };
 
 const updateReview = async (userId: string, reviewId: string, payload: TUpdateReviewPayload) => {
@@ -76,6 +120,16 @@ const updateReview = async (userId: string, reviewId: string, payload: TUpdateRe
     },
   });
 
+  const food = await prisma.food.findUnique({
+    where: { id: review.foodId },
+    select: { sellerId: true },
+  });
+  if (food?.sellerId) {
+    updateSellerRatingStats(food.sellerId).catch((err) =>
+      console.error("Failed to update seller rating stats after review update:", err)
+    );
+  }
+
   return result;
 };
 
@@ -95,6 +149,16 @@ const deleteReview = async (userId: string, userRole: UserRole, reviewId: string
   const result = await prisma.review.delete({
     where: { id: reviewId },
   });
+
+  const food = await prisma.food.findUnique({
+    where: { id: review.foodId },
+    select: { sellerId: true },
+  });
+  if (food?.sellerId) {
+    updateSellerRatingStats(food.sellerId).catch((err) =>
+      console.error("Failed to update seller rating stats after review delete:", err)
+    );
+  }
 
   return result;
 };
