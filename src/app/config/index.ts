@@ -64,4 +64,10 @@ export default {
     username: process.env.REDIS_USERNAME || undefined,
     password: process.env.REDIS_PASSWORD || undefined,
   },
+
+  aiService: {
+    baseUrl: process.env.AI_BASE_URL || process.env.AI_BACKEND_URL || "http://206.162.244.131:8035",
+    serviceToken: process.env.AI_SERVICE_TOKEN || "default_ai_service_token",
+    mainBackendServiceToken: process.env.MAIN_BACKEND_SERVICE_TOKEN || "default_main_backend_service_token",
+  },
 };

@@ -11,6 +11,8 @@ import { BookmarkRoutes } from "../modules/bookmark/bookmark.route";
 import { ReviewRoutes } from "../modules/review/review.route";
 import { ExploreRoutes } from "../modules/explore/explore.route";
 
+import { AIPublicRoutes } from "../modules/ai/ai.public.route";
+
 const router = Router();
 
 router.use("/users", UserRoutes);
@@ -24,5 +26,8 @@ router.use("/orders", OrderRoutes);
 router.use("/bookmarks", BookmarkRoutes);
 router.use("/reviews", ReviewRoutes);
 router.use("/explore", ExploreRoutes);
+
+// Public Gateway AI Endpoints for Flutter Client
+router.use("/ai", AIPublicRoutes);
 
 export default router;

@@ -1,0 +1,1578 @@
+{
+  "info": {
+    "_postman_id": "078f8ede-81e0-4ee8-b8c9-86a26521a1ac",
+    "name": "Food AI Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "45548400"
+  },
+  "item": [
+    {
+      "name": "Food Recommendation",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{service_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-User-ID",
+            "value": "{{buyer_user_id}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"limit\": 10,\r\n  \"meal_type\": \"lunch\",\r\n  \"delivery_zone_id\": null,\r\n  \"exclude_food_ids\": []\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/recommendations/foods",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "recommendations",
+            "foods"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Food Recommendation",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "{{buyer_user_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"limit\": 10,\r\n  \"meal_type\": \"lunch\",\r\n  \"delivery_zone_id\": null,\r\n  \"exclude_food_ids\": []\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/recommendations/foods",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "recommendations",
+                "foods"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 05:46:20 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "254"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_34705e1c29cf496b891a6bb306bb9f7a"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_34705e1c29cf496b891a6bb306bb9f7a\",\n    \"data\": {\n        \"recommendation_id\": \"rec_6114ce2776714844b90a55a5991554c6\",\n        \"items\": [\n            {\n                \"item_id\": \"f1\",\n                \"score\": 0.859,\n                \"compatibility\": \"safe\",\n                \"reasons\": [\n                    \"matches_cuisine\",\n                    \"matches_goal\"\n                ]\n            }\n        ]\n    },\n    \"meta\": {\n        \"cached\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Recipe Recommendation",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{service_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-User-ID",
+            "value": "{{buyer_user_id}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"limit\": 10,\r\n  \"meal_type\": \"lunch\",\r\n  \"max_cooking_time_minutes\": 60,\r\n  \"exclude_recipe_ids\": []\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/recommendations/recipes",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "recommendations",
+            "recipes"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Recipe Recommendation",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "{{buyer_user_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"limit\": 10,\r\n  \"meal_type\": \"lunch\",\r\n  \"max_cooking_time_minutes\": 60,\r\n  \"exclude_recipe_ids\": []\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/recommendations/recipes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "recommendations",
+                "recipes"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 05:47:26 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "353"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_0ad79ac8fedf4d54b2a7f5ccca012d10"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_0ad79ac8fedf4d54b2a7f5ccca012d10\",\n    \"data\": {\n        \"recommendation_id\": \"rec_de958dbffc4b4325abc381fee3f7d1e7\",\n        \"items\": [\n            {\n                \"item_id\": \"r1\",\n                \"score\": 0.961,\n                \"compatibility\": \"safe\",\n                \"reasons\": [\n                    \"preferred_cuisine\",\n                    \"goal_match\"\n                ]\n            },\n            {\n                \"item_id\": \"r2\",\n                \"score\": 0.961,\n                \"compatibility\": \"safe\",\n                \"reasons\": [\n                    \"preferred_cuisine\",\n                    \"goal_match\"\n                ]\n            }\n        ]\n    },\n    \"meta\": {\n        \"cached\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "AI Meal Plan Generator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{buyer_user_id}}",
+            "type": "text"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "meal-plan-test-001",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"start_date\": \"2026-08-26\",\r\n  \"days\": 3,\r\n  \"meals_per_day\": [\r\n    \"breakfast\",\r\n    \"lunch\",\r\n    \"dinner\"\r\n  ],\r\n  \"goal_override\": null,\r\n  \"excluded_recipe_ids\": []\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/meal-plans/generate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "meal-plans",
+            "generate"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "AI Meal Plan Generator",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{buyer_user_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "meal-plan-test-001",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"start_date\": \"2026-08-26\",\r\n  \"days\": 3,\r\n  \"meals_per_day\": [\r\n    \"breakfast\",\r\n    \"lunch\",\r\n    \"dinner\"\r\n  ],\r\n  \"goal_override\": null,\r\n  \"excluded_recipe_ids\": []\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/meal-plans/generate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "meal-plans",
+                "generate"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 05:51:21 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "761"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_29285d1685c840eba85eedaf3b10908e"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_29285d1685c840eba85eedaf3b10908e\",\n    \"data\": {\n        \"generation_id\": \"gen_mp_3c6bae94d834479bb9dc67c4231cd250\",\n        \"profile_version\": 3,\n        \"plan\": {\n            \"days\": [\n                {\n                    \"date\": \"2026-08-26\",\n                    \"meals\": [\n                        {\n                            \"meal_type\": \"breakfast\",\n                            \"recipe_id\": \"r1\",\n                            \"servings\": 4\n                        },\n                        {\n                            \"meal_type\": \"lunch\",\n                            \"recipe_id\": \"r2\",\n                            \"servings\": 4\n                        },\n                        {\n                            \"meal_type\": \"dinner\",\n                            \"recipe_id\": \"r1\",\n                            \"servings\": 4\n                        }\n                    ]\n                },\n                {\n                    \"date\": \"2026-08-27\",\n                    \"meals\": [\n                        {\n                            \"meal_type\": \"breakfast\",\n                            \"recipe_id\": \"r2\",\n                            \"servings\": 4\n                        },\n                        {\n                            \"meal_type\": \"lunch\",\n                            \"recipe_id\": \"r1\",\n                            \"servings\": 4\n                        },\n                        {\n                            \"meal_type\": \"dinner\",\n                            \"recipe_id\": \"r2\",\n                            \"servings\": 4\n                        }\n                    ]\n                },\n                {\n                    \"date\": \"2026-08-28\",\n                    \"meals\": [\n                        {\n                            \"meal_type\": \"breakfast\",\n                            \"recipe_id\": \"r1\",\n                            \"servings\": 4\n                        },\n                        {\n                            \"meal_type\": \"lunch\",\n                            \"recipe_id\": \"r2\",\n                            \"servings\": 4\n                        },\n                        {\n                            \"meal_type\": \"dinner\",\n                            \"recipe_id\": \"r1\",\n                            \"servings\": 4\n                        }\n                    ]\n                }\n            ]\n        }\n    },\n    \"meta\": {\n        \"cached\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Meal Replacement",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{buyer_user_id}}",
+            "type": "text"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "meal-plan-test-001",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"preference\": \"fish\",\r\n  \"limit\": 3\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/meal-plans/gen_mp_3c6bae94d834479bb9dc67c4231cd250/items/item1/replacement-options",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "meal-plans",
+            "gen_mp_3c6bae94d834479bb9dc67c4231cd250",
+            "items",
+            "item1",
+            "replacement-options"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Meal Replacement",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{buyer_user_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "meal-plan-test-001",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"preference\": \"fish\",\r\n  \"limit\": 3\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/meal-plans/gen_mp_3c6bae94d834479bb9dc67c4231cd250/items/item1/replacement-options",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "meal-plans",
+                "gen_mp_3c6bae94d834479bb9dc67c4231cd250",
+                "items",
+                "item1",
+                "replacement-options"
+              ]
+            }
+          },
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 05:54:35 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "141"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_7dc7f45ffbfd41ecad349fb85b08db25"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_7dc7f45ffbfd41ecad349fb85b08db25\",\n    \"error\": {\n        \"code\": \"RESOURCE_NOT_FOUND\",\n        \"message\": \"Meal item not found\",\n        \"retryable\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Nutrition Insight",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{buyer_user_id}}",
+            "type": "text"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "nutrition-test-001",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/internal/v1/meal-plans/mp1/insights",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "meal-plans",
+            "mp1",
+            "insights"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Nutrition Insight",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{buyer_user_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "nutrition-test-001",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/internal/v1/meal-plans/mp1/insights",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "meal-plans",
+                "mp1",
+                "insights"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 05:56:21 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "1011"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_198f899b63d64962a65e55268c2310c8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_198f899b63d64962a65e55268c2310c8\",\n    \"data\": {\n        \"generation_id\": \"gen_insight_33f9f0e4a46e495380e19430413bbda9\",\n        \"nutrition\": {\n            \"calories\": 1600,\n            \"protein_g\": 120,\n            \"carbs_g\": 200,\n            \"fat_g\": 40,\n            \"fiber_g\": 20,\n            \"sugar_g\": 0,\n            \"sodium_mg\": 0\n        },\n        \"insight\": {\n            \"summary\": \"The calculated plan provides 1,600 calories, with 120 g protein, 200 g carbohydrates, 40 g fat, and 20 g fiber. Carbohydrates are the largest macronutrient amount by weight, followed by protein and fat.\",\n            \"positive_points\": [\n                \"The plan includes all three main macronutrients: protein, carbohydrates, and fat.\",\n                \"It includes 20 g of fiber within the carbohydrate total.\",\n                \"Protein is set at 120 g, giving it a prominent place in the plan.\"\n            ],\n            \"suggestions\": [\n                \"Sugar and sodium are both listed as 0, meaning none is represented in the supplied calculated values.\",\n                \"Treat these numbers as the stated daily nutrition targets for the healthy-goal profile; actual food choices determine how varied and balanced the plan feels.\"\n            ]\n        }\n    },\n    \"meta\": {\n        \"cached\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Latest Nutrition Insight",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{buyer_user_id}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/internal/v1/meal-plans/mp1/insights/latest",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "meal-plans",
+            "mp1",
+            "insights",
+            "latest"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Latest Nutrition Insight",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{buyer_user_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/internal/v1/meal-plans/mp1/insights/latest",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "meal-plans",
+                "mp1",
+                "insights",
+                "latest"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 05:57:39 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "1010"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_f1a5e5f4cde64bce805999c61d3c2c77"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_f1a5e5f4cde64bce805999c61d3c2c77\",\n    \"data\": {\n        \"generation_id\": \"gen_insight_33f9f0e4a46e495380e19430413bbda9\",\n        \"nutrition\": {\n            \"calories\": 1600,\n            \"protein_g\": 120,\n            \"carbs_g\": 200,\n            \"fat_g\": 40,\n            \"fiber_g\": 20,\n            \"sugar_g\": 0,\n            \"sodium_mg\": 0\n        },\n        \"insight\": {\n            \"summary\": \"The calculated plan provides 1,600 calories, with 120 g protein, 200 g carbohydrates, 40 g fat, and 20 g fiber. Carbohydrates are the largest macronutrient amount by weight, followed by protein and fat.\",\n            \"positive_points\": [\n                \"The plan includes all three main macronutrients: protein, carbohydrates, and fat.\",\n                \"It includes 20 g of fiber within the carbohydrate total.\",\n                \"Protein is set at 120 g, giving it a prominent place in the plan.\"\n            ],\n            \"suggestions\": [\n                \"Sugar and sodium are both listed as 0, meaning none is represented in the supplied calculated values.\",\n                \"Treat these numbers as the stated daily nutrition targets for the healthy-goal profile; actual food choices determine how varied and balanced the plan feels.\"\n            ]\n        }\n    },\n    \"meta\": {\n        \"cached\": true\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Meal Plan → Grocery",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{buyer_user_id}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"meal_plan_id\": \"mp1\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/grocery-drafts/from-meal-plan",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "grocery-drafts",
+            "from-meal-plan"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Meal Plan → Grocery",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{buyer_user_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"meal_plan_id\": \"mp1\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/grocery-drafts/from-meal-plan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "grocery-drafts",
+                "from-meal-plan"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 05:59:29 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "321"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_e387f8b071674974b387ff9e657e4414"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_e387f8b071674974b387ff9e657e4414\",\n    \"data\": {\n        \"source_type\": \"meal_plan\",\n        \"source_id\": \"mp1\",\n        \"items\": [\n            {\n                \"ingredient_id\": \"rice\",\n                \"name\": \"Rice\",\n                \"quantity\": 400,\n                \"unit\": \"g\",\n                \"category\": \"grains\"\n            },\n            {\n                \"ingredient_id\": \"chicken\",\n                \"name\": \"Chicken\",\n                \"quantity\": 300,\n                \"unit\": \"g\",\n                \"category\": \"protein\"\n            }\n        ]\n    },\n    \"meta\": {\n        \"cached\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Recipe → Grocery",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{buyer_user_id}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"recipe_id\": \"r1\",\r\n  \"servings\": 4\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/grocery-drafts/from-recipe",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "grocery-drafts",
+            "from-recipe"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Recipe → Grocery",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{buyer_user_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"recipe_id\": \"r1\",\r\n  \"servings\": 4\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/grocery-drafts/from-recipe",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "grocery-drafts",
+                "from-recipe"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 06:01:18 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "317"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_607f3f968f64431f9b0a6532e7506333"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_607f3f968f64431f9b0a6532e7506333\",\n    \"data\": {\n        \"source_type\": \"recipe\",\n        \"source_id\": \"r1\",\n        \"items\": [\n            {\n                \"ingredient_id\": \"rice\",\n                \"name\": \"Rice\",\n                \"quantity\": 400,\n                \"unit\": \"g\",\n                \"category\": \"grains\"\n            },\n            {\n                \"ingredient_id\": \"chicken\",\n                \"name\": \"Chicken\",\n                \"quantity\": 300,\n                \"unit\": \"g\",\n                \"category\": \"protein\"\n            }\n        ]\n    },\n    \"meta\": {\n        \"cached\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Compatibility Check",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{buyer_user_id}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"resource_type\": \"recipe\",\r\n  \"resource_id\": \"r1\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/compatibility/check",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "compatibility",
+            "check"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Compatibility Check",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{buyer_user_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"resource_type\": \"recipe\",\r\n  \"resource_id\": \"r1\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/compatibility/check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "compatibility",
+                "check"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 06:03:05 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "186"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_7bc637ef8a54405eab88784933082a40"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_7bc637ef8a54405eab88784933082a40\",\n    \"data\": {\n        \"resource_type\": \"recipe\",\n        \"resource_id\": \"r1\",\n        \"status\": \"safe\",\n        \"conflicts\": [],\n        \"unknown_ingredients\": []\n    },\n    \"meta\": {\n        \"cached\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Compatibility Batch",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{buyer_user_id}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"items\": [\r\n    {\r\n      \"resource_type\": \"food\",\r\n      \"resource_id\": \"f1\"\r\n    },\r\n    {\r\n      \"resource_type\": \"recipe\",\r\n      \"resource_id\": \"r1\"\r\n    },\r\n    {\r\n      \"resource_type\": \"recipe\",\r\n      \"resource_id\": \"r2\"\r\n    }\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/compatibility/check-batch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "compatibility",
+            "check-batch"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Compatibility Batch",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{buyer_user_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"items\": [\r\n    {\r\n      \"resource_type\": \"food\",\r\n      \"resource_id\": \"f1\"\r\n    },\r\n    {\r\n      \"resource_type\": \"recipe\",\r\n      \"resource_id\": \"r1\"\r\n    },\r\n    {\r\n      \"resource_type\": \"recipe\",\r\n      \"resource_id\": \"r2\"\r\n    }\r\n  ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/compatibility/check-batch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "compatibility",
+                "check-batch"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 06:04:42 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "400"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_cbf85095e4ef47bf95806c1a23ed5ddd"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_cbf85095e4ef47bf95806c1a23ed5ddd\",\n    \"data\": {\n        \"items\": [\n            {\n                \"resource_type\": \"food\",\n                \"resource_id\": \"f1\",\n                \"status\": \"safe\",\n                \"conflicts\": [],\n                \"unknown_ingredients\": []\n            },\n            {\n                \"resource_type\": \"recipe\",\n                \"resource_id\": \"r1\",\n                \"status\": \"safe\",\n                \"conflicts\": [],\n                \"unknown_ingredients\": []\n            },\n            {\n                \"resource_type\": \"recipe\",\n                \"resource_id\": \"r2\",\n                \"status\": \"safe\",\n                \"conflicts\": [],\n                \"unknown_ingredients\": []\n            }\n        ]\n    },\n    \"meta\": {\n        \"cached\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Seller AI Recipe Generation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{seller_user_id}}",
+            "type": "text"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "seller-recipe-test-001",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"language\": \"en\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/seller-foods/sf1/recipe-drafts/generate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "seller-foods",
+            "sf1",
+            "recipe-drafts",
+            "generate"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Seller AI Recipe Generation",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{seller_user_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "seller-recipe-test-001",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"language\": \"en\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/seller-foods/sf1/recipe-drafts/generate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "seller-foods",
+                "sf1",
+                "recipe-drafts",
+                "generate"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 06:10:09 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "1024"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_977263a828744599a757b033741437fd"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_977263a828744599a757b033741437fd\",\n    \"data\": {\n        \"generation_id\": \"gen_recipe_f02cb39da561489295158d7472025f78\",\n        \"recipe\": {\n            \"title\": \"Chicken Khichuri\",\n            \"summary\": \"A traditional homemade Bangladeshi meal of rice and chicken cooked together until tender.\",\n            \"servings\": 4,\n            \"prep_time_minutes\": 20,\n            \"cook_time_minutes\": 40,\n            \"ingredients\": [\n                {\n                    \"ingredient_id\": \"rice\",\n                    \"name\": \"Rice\",\n                    \"quantity\": 200,\n                    \"unit\": \"g\"\n                },\n                {\n                    \"ingredient_id\": \"chicken\",\n                    \"name\": \"Chicken\",\n                    \"quantity\": 150,\n                    \"unit\": \"g\"\n                }\n            ],\n            \"steps\": [\n                {\n                    \"step_number\": 1,\n                    \"instruction\": \"Wash the rice thoroughly and drain.\"\n                },\n                {\n                    \"step_number\": 2,\n                    \"instruction\": \"Prepare the chicken for cooking.\"\n                },\n                {\n                    \"step_number\": 3,\n                    \"instruction\": \"Place the rice and chicken together in a suitable cooking pot.\"\n                },\n                {\n                    \"step_number\": 4,\n                    \"instruction\": \"Cook together for about 40 minutes, or until the rice and chicken are tender and the chicken is fully cooked.\"\n                }\n            ],\n            \"suggested_missing_ingredients\": [\n                \"Water or stock\",\n                \"Cooking oil\",\n                \"Salt\",\n                \"Turmeric\",\n                \"Onion\",\n                \"Ginger\",\n                \"Garlic\",\n                \"Other khichuri spices\"\n            ]\n        }\n    },\n    \"meta\": {\n        \"cached\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Recipe Regenerate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{seller_user_id}}",
+            "type": "text"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "seller-recipe-regen-001",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"previous_generation_id\": \"gen_recipe_f02cb39da561489295158d7472025f78\",\r\n  \"instructions\": \"Make the preparation instructions simpler and shorter.\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/seller-foods/gen_recipe_f02cb39da561489295158d7472025f78/recipe-drafts/regenerate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "seller-foods",
+            "gen_recipe_f02cb39da561489295158d7472025f78",
+            "recipe-drafts",
+            "regenerate"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Recipe Regenerate",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{seller_user_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "seller-recipe-regen-001",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"previous_generation_id\": \"gen_recipe_f02cb39da561489295158d7472025f78\",\r\n  \"instructions\": \"Make the preparation instructions simpler and shorter.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/seller-foods/gen_recipe_f02cb39da561489295158d7472025f78/recipe-drafts/regenerate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "seller-foods",
+                "gen_recipe_f02cb39da561489295158d7472025f78",
+                "recipe-drafts",
+                "regenerate"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 06:14:41 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "887"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_d8bb0ed78b2d4e58b2d64b31124cb8cc"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_d8bb0ed78b2d4e58b2d64b31124cb8cc\",\n    \"data\": {\n        \"generation_id\": \"gen_recipe_0b9bbb6acc7141229dc933382c8aa3ab\",\n        \"recipe\": {\n            \"title\": \"Chicken Khichuri\",\n            \"summary\": \"A simple Bangladeshi dish of rice and chicken cooked until tender.\",\n            \"servings\": 4,\n            \"prep_time_minutes\": 20,\n            \"cook_time_minutes\": 40,\n            \"ingredients\": [\n                {\n                    \"ingredient_id\": \"rice\",\n                    \"name\": \"Rice\",\n                    \"quantity\": 200,\n                    \"unit\": \"g\"\n                },\n                {\n                    \"ingredient_id\": \"chicken\",\n                    \"name\": \"Chicken\",\n                    \"quantity\": 150,\n                    \"unit\": \"g\"\n                }\n            ],\n            \"steps\": [\n                {\n                    \"step_number\": 1,\n                    \"instruction\": \"Wash and drain the rice. Prepare the chicken.\"\n                },\n                {\n                    \"step_number\": 2,\n                    \"instruction\": \"Put the rice and chicken in a cooking pot.\"\n                },\n                {\n                    \"step_number\": 3,\n                    \"instruction\": \"Cook for about 40 minutes, until tender and the chicken is fully cooked.\"\n                }\n            ],\n            \"suggested_missing_ingredients\": [\n                \"Water or stock\",\n                \"Cooking oil\",\n                \"Salt\",\n                \"Turmeric\",\n                \"Onion\",\n                \"Ginger\",\n                \"Garlic\",\n                \"Other khichuri spices\"\n            ]\n        }\n    },\n    \"meta\": {\n        \"cached\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Recommendation Event",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{seller_user_id}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"recommendation_id\": \"rec_6114ce2776714844b90a55a5991554c6\",\r\n  \"item_type\": \"food\",\r\n  \"item_id\": \"f1\",\r\n  \"event\": \"clicked\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/recommendation-events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "recommendation-events"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Recommendation Event",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{seller_user_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"recommendation_id\": \"rec_6114ce2776714844b90a55a5991554c6\",\r\n  \"item_type\": \"food\",\r\n  \"item_id\": \"f1\",\r\n  \"event\": \"clicked\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/recommendation-events",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "recommendation-events"
+              ]
+            }
+          },
+          "status": "No Content",
+          "code": 204,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 06:17:04 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_25a60152d42a461abc42fdb20ab5f50f"
+            }
+          ],
+          "cookie": [],
+          "body": null
+        }
+      ]
+    },
+    {
+      "name": "profile-cache",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{service_token}}",
+            "type": "text"
+          },
+          {
+            "key": "X-User-ID",
+            "value": "{{buyer_user_id}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"profile_version\": 1\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/internal/v1/users/11111111-1111-1111-1111-111111111111/profile-cache/invalidate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "internal",
+            "v1",
+            "users",
+            "11111111-1111-1111-1111-111111111111",
+            "profile-cache",
+            "invalidate"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "profile-cache",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{buyer_user_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"profile_version\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/internal/v1/users/11111111-1111-1111-1111-111111111111/profile-cache/invalidate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "internal",
+                "v1",
+                "users",
+                "11111111-1111-1111-1111-111111111111",
+                "profile-cache",
+                "invalidate"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "date",
+              "value": "Tue, 25 Aug 2026 08:26:39 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "125"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "req_43c5d0037e9b4f4da0b8ddb32b5eaba4"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"request_id\": \"req_43c5d0037e9b4f4da0b8ddb32b5eaba4\",\n    \"data\": {\n        \"invalidated\": true,\n        \"profile_version\": 1\n    },\n    \"meta\": {\n        \"cached\": false\n    }\n}"
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": ""
+    },
+    {
+      "key": "service_token",
+      "value": ""
+    },
+    {
+      "key": "buyer_user_id",
+      "value": ""
+    },
+    {
+      "key": "seller_user_id",
+      "value": ""
+    }
+  ]
+}
