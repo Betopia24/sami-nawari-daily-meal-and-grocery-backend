@@ -8,6 +8,7 @@ import notFound from "./app/middlewares/notFound";
 import { PaymentController } from "./app/modules/payment/payemnt.controller";
 import router from "./app/routes";
 import { getWelcomeHtml } from "./app/utils/getWelcomeHtml";
+import { AIInternalRoutes } from "./app/modules/ai/ai.internal.route";
 
 const app: Application = express();
 
@@ -55,8 +56,11 @@ app.get("/", (req: Request, res: Response) => {
     });
 });
 
+
+
 app.set("trust proxy", 1);
 
+app.use("/internal/ai", AIInternalRoutes);
 app.use("/api/v1", router);
 
 app.use(notFound);
