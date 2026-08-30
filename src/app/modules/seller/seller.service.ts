@@ -267,7 +267,7 @@ const getAllSellers = async (query: Record<string, any>) => {
     };
   }
 
-  const [data, total] = await Promise.all([
+  const [sellers, total] = await Promise.all([
     prisma.sellerProfile.findMany({
       where: prismaQuery.where,
       orderBy: prismaQuery.orderBy,
@@ -289,6 +289,79 @@ const getAllSellers = async (query: Record<string, any>) => {
     }),
     prisma.sellerProfile.count({ where: prismaQuery.where }),
   ]);
+
+  const sellerUserIds = sellers.map((s) => s.userId);
+
+  const [foodCountsGroup, rawOrderCounts] = await Promise.all([
+    prisma.food.groupBy({
+      by: ["sellerId"],
+      where: {
+        sellerId: { in: sellerUserIds },
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.order.aggregateRaw({
+      pipeline: [
+        {
+          $match: {
+            parentId: { $ne: null },
+            "items.sellerId": { $in: sellerUserIds.map((id) => ({ $oid: id })) },
+          },
+        },
+        {
+          $unwind: "$items",
+        },
+        {
+          $match: {
+            "items.sellerId": { $in: sellerUserIds.map((id) => ({ $oid: id })) },
+          },
+        },
+        {
+          $group: {
+            _id: "$items.sellerId",
+            uniqueOrders: { $addToSet: "$_id" },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            sellerId: { $toString: "$_id" },
+            count: { $size: "$uniqueOrders" },
+          },
+        },
+      ],
+    }),
+  ]);
+
+  const foodCountMap = new Map<string, number>();
+  foodCountsGroup.forEach((item) => {
+    foodCountMap.set(item.sellerId, item._count._all);
+  });
+
+  const orderCountMap = new Map<string, number>();
+  if (Array.isArray(rawOrderCounts)) {
+    rawOrderCounts.forEach((item: any) => {
+      if (item && item.sellerId) {
+        let count = 0;
+        if (typeof item.count === "number") {
+          count = item.count;
+        } else if (item.count && typeof item.count === "object" && "$numberInt" in item.count) {
+          count = parseInt(item.count.$numberInt, 10) || 0;
+        }
+        orderCountMap.set(item.sellerId, count);
+      }
+    });
+  }
+
+  const data = sellers.map((seller) => {
+    return {
+      ...seller,
+      totalFoods: foodCountMap.get(seller.userId) || 0,
+      totalOrders: orderCountMap.get(seller.userId) || 0,
+    };
+  });
 
   return {
     meta: qb.getMeta(total),
