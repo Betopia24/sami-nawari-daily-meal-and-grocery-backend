@@ -182,6 +182,7 @@ const getAllFoodsAdmin = async (query: Record<string, any>) => {
             sellerProfile: {
               select: {
                 businessName: true,
+                cuisineTypes: true,
               },
             },
           },
