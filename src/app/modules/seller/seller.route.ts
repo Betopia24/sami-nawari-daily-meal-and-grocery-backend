@@ -60,4 +60,20 @@ router.patch(
   SellerController.approveOrRejectSellerRequest
 );
 
+
+router.patch(
+  "/admin/sellers/:sellerId/change-status",
+  auth(UserRole.ADMIN),
+  validateRequest(sellerValidation.changeSellerStatusSchema),
+  SellerController.changeSellerStatus
+);
+
+
+router.patch(
+  "/admin/sellers/:id/status",
+  auth(UserRole.ADMIN),
+  validateRequest(sellerValidation.changeSellerStatusSchema),
+  SellerController.changeSellerStatus
+);
+
 export const SellerRoutes = router;

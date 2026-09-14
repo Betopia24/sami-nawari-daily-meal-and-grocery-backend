@@ -2,6 +2,7 @@ enum SellerRequestStatus {
   PENDING
   APPROVED
   REJECTED
+  SUSPENDED
 }
 
 enum CuisineType {

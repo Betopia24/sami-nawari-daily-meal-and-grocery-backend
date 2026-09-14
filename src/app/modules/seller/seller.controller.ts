@@ -155,6 +155,21 @@ const approveOrRejectSellerRequest = catchAsync(async (req: Request, res: Respon
   });
 });
 
+
+const changeSellerStatus = catchAsync(async (req: Request, res: Response) => {
+  const sellerId = (req.params.sellerId || req.params.id) as string;
+  const payload = req.body;
+
+  const result = await SellerService.changeSellerStatus(sellerId, payload);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: `Seller profile status updated to ${payload.status} successfully`,
+    data: result,
+  });
+});
+
 export const SellerController = {
   submitSellerRequest,
   getMySellerProfile,
@@ -163,4 +178,5 @@ export const SellerController = {
   getAllSellers,
   getSellerRequestById,
   approveOrRejectSellerRequest,
+  changeSellerStatus,
 };

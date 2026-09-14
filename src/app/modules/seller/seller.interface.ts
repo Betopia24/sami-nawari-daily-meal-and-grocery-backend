@@ -1,4 +1,4 @@
-import { CuisineType } from "@prisma/client";
+import { CuisineType, SellerRequestStatus } from "@prisma/client";
 
 export interface TSubmitSellerRequestPayload {
   businessName: string;
@@ -33,5 +33,10 @@ export interface TUpdateSellerProfilePayload {
 
 export interface TApproveRejectSellerPayload {
   status: 'APPROVED' | 'REJECTED';
+  adminNote?: string;
+}
+
+export interface TChangeSellerStatusPayload {
+  status: SellerRequestStatus;
   adminNote?: string;
 }
