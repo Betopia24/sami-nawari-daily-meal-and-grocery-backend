@@ -4,7 +4,7 @@ export const getWelcomeHtml = () => {
     const responseData = {
         success: true,
         statusCode: 200,
-        message: "🚀 Welcome to Initialize Backend API",
+        message: "Welcome to Sami & Nawari Backend API",
         version: "1.0.0",
         environment: config.node_env || "development",
         timestamp: new Date().toISOString(),
@@ -18,7 +18,7 @@ export const getWelcomeHtml = () => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Initialize Backend API</title>
+            <title>Sami & Nawari Backend API</title>
             <link rel="icon" type="image/png" href="/favicon.png">
             <style>
                 body {
