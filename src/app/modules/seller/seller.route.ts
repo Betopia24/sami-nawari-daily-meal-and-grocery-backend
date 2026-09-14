@@ -70,7 +70,23 @@ router.patch(
 
 
 router.patch(
+  "/admin/sellers/change-status/:sellerId",
+  auth(UserRole.ADMIN),
+  validateRequest(sellerValidation.changeSellerStatusSchema),
+  SellerController.changeSellerStatus
+);
+
+
+router.patch(
   "/admin/sellers/:id/status",
+  auth(UserRole.ADMIN),
+  validateRequest(sellerValidation.changeSellerStatusSchema),
+  SellerController.changeSellerStatus
+);
+
+
+router.patch(
+  "/admin/change-status/:id",
   auth(UserRole.ADMIN),
   validateRequest(sellerValidation.changeSellerStatusSchema),
   SellerController.changeSellerStatus

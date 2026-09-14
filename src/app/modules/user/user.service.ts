@@ -399,6 +399,7 @@ const changeUserStatus = async (userId: string, adminId: string, payload: TChang
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
+    include: { sellerProfile: true },
   });
 
   if (!user) {
@@ -421,6 +422,21 @@ const changeUserStatus = async (userId: string, adminId: string, payload: TChang
       status,
     },
   });
+
+  // If user has a seller profile, sync sellerProfile status as well
+  if (user.sellerProfile) {
+    const sellerStatus =
+      status === "SUSPENDED"
+        ? SellerRequestStatus.SUSPENDED
+        : status === "ACTIVE"
+        ? SellerRequestStatus.APPROVED
+        : user.sellerProfile.status;
+
+    await prisma.sellerProfile.update({
+      where: { id: user.sellerProfile.id },
+      data: { status: sellerStatus },
+    });
+  }
 
   const { password: _, ...userWithoutPassword } = updatedUser;
   return userWithoutPassword;
