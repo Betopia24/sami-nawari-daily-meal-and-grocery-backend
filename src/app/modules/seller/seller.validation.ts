@@ -41,46 +41,20 @@ const updateSellerProfileSchema = z.object({
   profilePicture: z.string().optional(),
 });
 
-const approveRejectSellerSchema = z
-  .object({
-    status: z.nativeEnum(SellerRequestStatus).refine(
-      (val) => val === SellerRequestStatus.APPROVED || val === SellerRequestStatus.REJECTED,
-      { message: 'Status must be APPROVED or REJECTED' }
-    ),
-    adminNote: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      if (data.status === SellerRequestStatus.REJECTED) {
-        return typeof data.adminNote === 'string' && data.adminNote.trim().length > 0;
-      }
-      return true;
-    },
-    {
-      message: 'Reason (adminNote) is required when rejecting a seller request',
-      path: ['adminNote'],
-    }
-  );
+const approveRejectSellerSchema = z.object({
+  status: z.nativeEnum(SellerRequestStatus).refine(
+    (val) => val === SellerRequestStatus.APPROVED || val === SellerRequestStatus.REJECTED,
+    { message: 'Status must be APPROVED or REJECTED' }
+  ),
+  adminNote: z.string().optional(),
+});
 
-const changeSellerStatusSchema = z
-  .object({
-    status: z.nativeEnum(SellerRequestStatus, {
-      message: 'Status must be one of: PENDING, APPROVED, REJECTED, SUSPENDED',
-    }),
-    adminNote: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      if (data.status === SellerRequestStatus.REJECTED) {
-        return typeof data.adminNote === 'string' && data.adminNote.trim().length > 0;
-      }
-      return true;
-    },
-    {
-      message: 'Reason (adminNote) is required when rejecting a seller request',
-      path: ['adminNote'],
-    }
-  );
+const changeSellerStatusSchema = z.object({
+  status: z.nativeEnum(SellerRequestStatus, {
+    message: 'Status must be one of: PENDING, APPROVED, REJECTED, SUSPENDED',
+  }),
+  adminNote: z.string().optional(),
+});
 
 export const sellerValidation = {
   submitSellerRequestSchema,

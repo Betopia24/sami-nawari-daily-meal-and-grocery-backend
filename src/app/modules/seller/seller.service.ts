@@ -414,10 +414,6 @@ const approveOrRejectSellerRequest = async (
     throw new ApiError(400, "This seller request has already been approved.");
   }
 
-  if (payload.status === SellerRequestStatus.REJECTED && (!payload.adminNote || !payload.adminNote.trim())) {
-    throw new ApiError(400, "Reason (adminNote) is required when rejecting a seller request.");
-  }
-
   // Update the seller profile status
   const updatedProfile = await prisma.sellerProfile.update({
     where: { id: profileId },
@@ -475,7 +471,7 @@ const approveOrRejectSellerRequest = async (
     message:
       payload.status === SellerRequestStatus.APPROVED
         ? `Congratulations! Your seller application for "${profile.businessName}" has been approved.`
-        : `Your seller application for "${profile.businessName}" was rejected. Reason: ${payload.adminNote}`,
+        : `Your seller application for "${profile.businessName}" was rejected.${payload.adminNote ? ` Reason: ${payload.adminNote}` : ""}`,
     type: NotificationType.MARKETPLACE,
   }).catch((err) => {
     console.error(`Failed to send in-app notification for seller status to ${profile.userId}:`, err);
@@ -498,13 +494,6 @@ const changeSellerStatus = async (
 
   if (!profile) {
     throw new ApiError(404, "Seller profile not found.");
-  }
-
-  if (
-    payload.status === SellerRequestStatus.REJECTED &&
-    (!payload.adminNote || !payload.adminNote.trim())
-  ) {
-    throw new ApiError(400, "Reason (adminNote) is required when rejecting a seller request.");
   }
 
   // Update seller profile status
