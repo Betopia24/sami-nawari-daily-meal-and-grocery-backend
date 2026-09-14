@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SellerRequestStatus, UserRole } from "@prisma/client";
+import { NotificationType, SellerRequestStatus, UserRole } from "@prisma/client";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
+import { NotificationService } from "../notification/notification.service";
 import { PrismaQueryBuilder } from "../../utils/QueryBuilder";
 import emailSender from "../../utils/emailSender";
 import { getSellerStatusEmailTemplate } from "../../utils/emailTemplates";
 import {
   TApproveRejectSellerPayload,
+  TChangeSellerStatusPayload,
   TSubmitSellerRequestPayload,
   TUpdateSellerProfilePayload,
 } from "./seller.interface";
@@ -412,6 +414,10 @@ const approveOrRejectSellerRequest = async (
     throw new ApiError(400, "This seller request has already been approved.");
   }
 
+  if (payload.status === SellerRequestStatus.REJECTED && (!payload.adminNote || !payload.adminNote.trim())) {
+    throw new ApiError(400, "Reason (adminNote) is required when rejecting a seller request.");
+  }
+
   // Update the seller profile status
   const updatedProfile = await prisma.sellerProfile.update({
     where: { id: profileId },
@@ -459,6 +465,122 @@ const approveOrRejectSellerRequest = async (
     });
   }
 
+  // Create in-app and push notification for the user asynchronously
+  NotificationService.createNotification({
+    userId: profile.userId,
+    title:
+      payload.status === SellerRequestStatus.APPROVED
+        ? "Seller Account Approved! 🎉"
+        : "Seller Account Application Rejected ❌",
+    message:
+      payload.status === SellerRequestStatus.APPROVED
+        ? `Congratulations! Your seller application for "${profile.businessName}" has been approved.`
+        : `Your seller application for "${profile.businessName}" was rejected. Reason: ${payload.adminNote}`,
+    type: NotificationType.MARKETPLACE,
+  }).catch((err) => {
+    console.error(`Failed to send in-app notification for seller status to ${profile.userId}:`, err);
+  });
+
+  return updatedProfile;
+};
+
+
+const changeSellerStatus = async (
+  sellerId: string,
+  payload: TChangeSellerStatusPayload
+) => {
+  const profile = await prisma.sellerProfile.findFirst({
+    where: {
+      OR: [{ id: sellerId }, { userId: sellerId }],
+    },
+    include: { user: true },
+  });
+
+  if (!profile) {
+    throw new ApiError(404, "Seller profile not found.");
+  }
+
+  if (
+    payload.status === SellerRequestStatus.REJECTED &&
+    (!payload.adminNote || !payload.adminNote.trim())
+  ) {
+    throw new ApiError(400, "Reason (adminNote) is required when rejecting a seller request.");
+  }
+
+  // Update seller profile status
+  const updatedProfile = await prisma.sellerProfile.update({
+    where: { id: profile.id },
+    data: {
+      status: payload.status,
+      ...(payload.adminNote ? { adminNote: payload.adminNote } : {}),
+    },
+  });
+
+  // Sync user role and isSeller flag according to seller status
+  if (payload.status === SellerRequestStatus.APPROVED) {
+    await prisma.user.update({
+      where: { id: profile.userId },
+      data: {
+        isSeller: true,
+        role: UserRole.SELLER,
+      },
+    });
+  } else if (
+    payload.status === SellerRequestStatus.REJECTED ||
+    payload.status === SellerRequestStatus.SUSPENDED
+  ) {
+    await prisma.user.update({
+      where: { id: profile.userId },
+      data: {
+        isSeller: false,
+        ...(profile.user.role === UserRole.SELLER ? { role: UserRole.BUYER } : {}),
+      },
+    });
+  }
+
+  // Send status update email notification to the user asynchronously
+  if (profile.user?.email) {
+    const subject =
+      payload.status === SellerRequestStatus.APPROVED
+        ? "Sami Nawari — Seller Account Approved! 🎉"
+        : payload.status === SellerRequestStatus.SUSPENDED
+        ? "Sami Nawari — Seller Account Suspended ⚠️"
+        : "Sami Nawari — Seller Account Application Status ❌";
+
+    const emailStatus = payload.status === SellerRequestStatus.APPROVED ? "APPROVED" : "REJECTED";
+
+    const htmlContent = getSellerStatusEmailTemplate(
+      profile.user.name,
+      profile.businessName,
+      emailStatus,
+      payload.adminNote ?? profile.adminNote
+    );
+
+    emailSender(subject, profile.user.email, htmlContent).catch((err) => {
+      console.error(`Failed to send seller status email to ${profile.user.email}:`, err);
+    });
+  }
+
+  // Create in-app notification
+  NotificationService.createNotification({
+    userId: profile.userId,
+    title:
+      payload.status === SellerRequestStatus.APPROVED
+        ? "Seller Account Approved! 🎉"
+        : payload.status === SellerRequestStatus.SUSPENDED
+        ? "Seller Account Suspended ⚠️"
+        : "Seller Account Application Status Update ❌",
+    message:
+      payload.status === SellerRequestStatus.APPROVED
+        ? `Congratulations! Your seller application for "${profile.businessName}" has been approved.`
+        : payload.status === SellerRequestStatus.SUSPENDED
+        ? `Your seller profile for "${profile.businessName}" has been suspended.${payload.adminNote ? ` Reason: ${payload.adminNote}` : ""}`
+        : `Your seller application for "${profile.businessName}" was rejected.${payload.adminNote ? ` Reason: ${payload.adminNote}` : ""}`,
+    type: NotificationType.MARKETPLACE,
+  }).catch((err) => {
+    console.error(`Failed to send in-app notification for seller status to ${profile.userId}:`, err);
+  });
+
   return updatedProfile;
 };
 
@@ -470,4 +592,5 @@ export const SellerService = {
   getAllSellers,
   getSellerRequestById,
   approveOrRejectSellerRequest,
+  changeSellerStatus,
 };
