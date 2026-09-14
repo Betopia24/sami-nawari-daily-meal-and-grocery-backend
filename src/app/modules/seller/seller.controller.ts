@@ -157,7 +157,8 @@ const approveOrRejectSellerRequest = catchAsync(async (req: Request, res: Respon
 
 
 const changeSellerStatus = catchAsync(async (req: Request, res: Response) => {
-  const sellerId = (req.params.sellerId || req.params.id) as string;
+  const rawId = (req.params.sellerId || req.params.id) as string;
+  const sellerId = rawId ? rawId.replace(/^:/, "") : "";
   const payload = req.body;
 
   const result = await SellerService.changeSellerStatus(sellerId, payload);
