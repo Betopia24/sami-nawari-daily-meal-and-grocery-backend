@@ -1,5 +1,5 @@
 {
-  "name": "my-backend",
+  "name": "sami-nawari-daily-meal-and-grocery-backend",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,7 @@
   "keywords": [],
   "author": "Md Nayeem Miah",
   "license": "ISC",
-  "description": "A fully scalable, production-ready **backend starter template** built with **Node.js**, **Express**, and **TypeScript** using a **clean modular architecture**.\r Perfect for small to large backend systems following industry best practices.",
+  "description": "sami nawari daily meal and grocery backend",
   "dependencies": {
     "@prisma/client": "^6.19.1",
     "@socket.io/redis-adapter": "^8.3.0",
