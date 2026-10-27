@@ -31,6 +31,26 @@ router.patch(
   SellerController.updateSellerProfile
 );
 
+//* ─── Seller Stripe Connect Routes ───────────────────────────────────────────
+
+router.post(
+  "/stripe/connect",
+  auth(UserRole.SELLER),
+  SellerController.createStripeConnectAccount
+);
+
+router.get(
+  "/stripe/status",
+  auth(UserRole.SELLER),
+  SellerController.getStripeAccountStatus
+);
+
+router.post(
+  "/stripe/dashboard-link",
+  auth(UserRole.SELLER),
+  SellerController.createStripeDashboardLink
+);
+
 
 router.get(
   "/admin/requests",

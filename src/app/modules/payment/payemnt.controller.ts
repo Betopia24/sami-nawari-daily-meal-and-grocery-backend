@@ -29,4 +29,21 @@ const handleStripeWebhooksEvent = catchAsync(async (req: Request, res: Response)
     });
 });
 
-export const PaymentController = { handleStripeWebhooksEvent };
+const createCheckoutSession = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+    const decodedUser = req.user as any;
+    const { orderId } = req.body;
+
+    const result = await PaymentService.createCheckoutSession(decodedUser.userId, orderId);
+
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Stripe Checkout session created successfully",
+        data: result,
+    });
+});
+
+export const PaymentController = {
+    createCheckoutSession,
+    handleStripeWebhooksEvent,
+};

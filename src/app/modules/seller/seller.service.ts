@@ -12,6 +12,8 @@ import {
   TSubmitSellerRequestPayload,
   TUpdateSellerProfilePayload,
 } from "./seller.interface";
+import { stripe } from "../../utils/stripe";
+import config from "../../config";
 
 
 const submitSellerRequest = async (
@@ -620,6 +622,127 @@ const changeSellerStatus = async (
   return updatedProfile;
 };
 
+const createStripeConnectAccount = async (userId: string) => {
+  const seller = await prisma.sellerProfile.findUnique({
+    where: { userId },
+    include: {
+      user: {
+        select: {
+          email: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (!seller) {
+    throw new ApiError(404, "Seller profile not found");
+  }
+
+  let stripeAccountId = seller.stripeAccountId;
+
+  // If no Stripe Connect account exists, create one
+  if (!stripeAccountId) {
+    const account = await stripe.accounts.create({
+      type: "express",
+      country: "US", // Default country, can be set based on seller location
+      email: seller.user.email,
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
+      business_type: "individual",
+      business_profile: {
+        name: seller.businessName,
+        url: config.stripe.frontendUrl || "https://saminawari.com",
+      },
+    });
+
+    stripeAccountId = account.id;
+
+    await prisma.sellerProfile.update({
+      where: { userId },
+      data: {
+        stripeAccountId,
+      },
+    });
+  }
+
+  const frontendUrl = config.stripe.frontendUrl || config.clientUrl || "http://localhost:3000";
+
+  // Generate onboarding link
+  const accountLink = await stripe.accountLinks.create({
+    account: stripeAccountId,
+    refresh_url: `${frontendUrl}/seller/stripe-connect/refresh`,
+    return_url: `${frontendUrl}/seller/stripe-connect/return`,
+    type: "account_onboarding",
+  });
+
+  return {
+    url: accountLink.url,
+    stripeAccountId,
+  };
+};
+
+const getStripeAccountStatus = async (userId: string) => {
+  const seller = await prisma.sellerProfile.findUnique({
+    where: { userId },
+  });
+
+  if (!seller) {
+    throw new ApiError(404, "Seller profile not found");
+  }
+
+  if (!seller.stripeAccountId) {
+    return {
+      connected: false,
+      stripeAccountId: null,
+      chargesEnabled: false,
+      payoutsEnabled: false,
+      detailsSubmitted: false,
+    };
+  }
+
+  const account = await stripe.accounts.retrieve(seller.stripeAccountId);
+
+  const chargesEnabled = account.charges_enabled ?? false;
+  const payoutsEnabled = account.payouts_enabled ?? false;
+  const detailsSubmitted = account.details_submitted ?? false;
+
+  await prisma.sellerProfile.update({
+    where: { userId },
+    data: {
+      stripeChargesEnabled: chargesEnabled,
+      stripePayoutsEnabled: payoutsEnabled,
+      stripeOnboardingCompleted: detailsSubmitted,
+    },
+  });
+
+  return {
+    connected: true,
+    stripeAccountId: seller.stripeAccountId,
+    chargesEnabled,
+    payoutsEnabled,
+    detailsSubmitted,
+  };
+};
+
+const createStripeDashboardLink = async (userId: string) => {
+  const seller = await prisma.sellerProfile.findUnique({
+    where: { userId },
+  });
+
+  if (!seller || !seller.stripeAccountId) {
+    throw new ApiError(400, "Seller does not have a connected Stripe account");
+  }
+
+  const loginLink = await stripe.accounts.createLoginLink(seller.stripeAccountId);
+
+  return {
+    url: loginLink.url,
+  };
+};
+
 export const SellerService = {
   submitSellerRequest,
   getMySellerProfile,
@@ -629,4 +752,7 @@ export const SellerService = {
   getSellerRequestById,
   approveOrRejectSellerRequest,
   changeSellerStatus,
+  createStripeConnectAccount,
+  getStripeAccountStatus,
+  createStripeDashboardLink,
 };
