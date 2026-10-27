@@ -13,11 +13,37 @@ const submitSellerRequest = catchAsync(async (req: Request & { user?: any }, res
   if (req.body.data) {
     payload = JSON.parse(req.body.data);
   }
-  if (req.file) {
-    const uploadResult = await fileUpload.uploadToCloudinary(req.file);
-    if (uploadResult && uploadResult.secure_url) {
-      payload.governmentId = uploadResult.secure_url;
+
+  // Handle uploaded files (single or multiple via upload.any())
+  const files = (req.files as Express.Multer.File[]) || (req.file ? [req.file] : []);
+  const uploadedKitchenImages: string[] = [];
+
+  for (const file of files) {
+    if (file.fieldname === "file" || file.fieldname === "governmentId") {
+      const uploadResult = await fileUpload.uploadToCloudinary(file);
+      if (uploadResult && uploadResult.secure_url) {
+        payload.governmentId = uploadResult.secure_url;
+      }
+    } else if (file.fieldname === "kitchenImages" || file.fieldname === "images" || file.fieldname === "files") {
+      const uploadResult = await fileUpload.uploadToCloudinary(file);
+      if (uploadResult && uploadResult.secure_url) {
+        uploadedKitchenImages.push(uploadResult.secure_url);
+      }
     }
+  }
+
+  if (typeof payload.kitchenImages === "string") {
+    try {
+      payload.kitchenImages = JSON.parse(payload.kitchenImages);
+    } catch {
+      payload.kitchenImages = [payload.kitchenImages];
+    }
+  }
+
+  if (uploadedKitchenImages.length > 0) {
+    payload.kitchenImages = payload.kitchenImages
+      ? [...payload.kitchenImages, ...uploadedKitchenImages]
+      : uploadedKitchenImages;
   }
 
   if (typeof payload.cuisineTypes === 'string') {
@@ -69,11 +95,41 @@ const updateSellerProfile = catchAsync(async (req: Request & { user?: any }, res
     payload = JSON.parse(req.body.data);
   }
 
-  if (req.file) {
-    const uploadResult = await fileUpload.uploadToCloudinary(req.file);
-    if (uploadResult && uploadResult.secure_url) {
-      payload.profilePicture = uploadResult.secure_url;
+  // Handle uploaded files
+  const files = (req.files as Express.Multer.File[]) || (req.file ? [req.file] : []);
+  const uploadedKitchenImages: string[] = [];
+
+  for (const file of files) {
+    if (file.fieldname === "file" || file.fieldname === "profilePicture") {
+      const uploadResult = await fileUpload.uploadToCloudinary(file);
+      if (uploadResult && uploadResult.secure_url) {
+        payload.profilePicture = uploadResult.secure_url;
+      }
+    } else if (file.fieldname === "governmentId") {
+      const uploadResult = await fileUpload.uploadToCloudinary(file);
+      if (uploadResult && uploadResult.secure_url) {
+        payload.governmentId = uploadResult.secure_url;
+      }
+    } else if (file.fieldname === "kitchenImages" || file.fieldname === "images" || file.fieldname === "files") {
+      const uploadResult = await fileUpload.uploadToCloudinary(file);
+      if (uploadResult && uploadResult.secure_url) {
+        uploadedKitchenImages.push(uploadResult.secure_url);
+      }
     }
+  }
+
+  if (typeof payload.kitchenImages === "string") {
+    try {
+      payload.kitchenImages = JSON.parse(payload.kitchenImages);
+    } catch {
+      payload.kitchenImages = [payload.kitchenImages];
+    }
+  }
+
+  if (uploadedKitchenImages.length > 0) {
+    payload.kitchenImages = payload.kitchenImages
+      ? [...payload.kitchenImages, ...uploadedKitchenImages]
+      : uploadedKitchenImages;
   }
 
   if (typeof payload.cuisineTypes === 'string') {

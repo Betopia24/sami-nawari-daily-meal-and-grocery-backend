@@ -22,6 +22,7 @@ const submitSellerRequestSchema = z.object({
   workingHours: workingHoursSchema,
   pickupAvailable: z.boolean().optional().default(false),
   deliveryAvailable: z.boolean().optional().default(false),
+  kitchenImages: z.array(z.string()).min(5, 'At least 5 kitchen images are required'),
   governmentId: z.string().optional(),
 });
 
@@ -37,6 +38,7 @@ const updateSellerProfileSchema = z.object({
   workingHours: workingHoursSchema,
   pickupAvailable: z.boolean().optional(),
   deliveryAvailable: z.boolean().optional(),
+  kitchenImages: z.array(z.string()).optional(),
   governmentId: z.string().optional(),
   profilePicture: z.string().optional(),
 });

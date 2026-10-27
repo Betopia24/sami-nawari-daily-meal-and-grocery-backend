@@ -5,7 +5,12 @@ import { Request } from "express";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import { PrismaQueryBuilder } from "../../utils/QueryBuilder";
-import { UserRole, UserStatus, SellerRequestStatus } from "@prisma/client";
+import {
+  UserRole,
+  UserStatus,
+  SellerRequestStatus,
+  OrderStatus,
+} from "@prisma/client";
 import config from "../../config";
 import { jwtHelper } from "../../utils/JwtHelper";
 import {
@@ -14,11 +19,21 @@ import {
   TUpdateLanguageRegionPayload,
   TUpdateDietaryPreferencesPayload,
   TUpdateAllergiesPayload,
-  TChangeUserStatusPayload
+  TChangeUserStatusPayload,
 } from "./user.interface";
 
 const createUser = async (req: Request) => {
-  const { password, name, email, role, phone, username, isSeller, dietaryPreferences, allergies } = req.body;
+  const {
+    password,
+    name,
+    email,
+    role,
+    phone,
+    username,
+    isSeller,
+    dietaryPreferences,
+    allergies,
+  } = req.body;
 
   const isExistingUser = await prisma.user.findUnique({
     where: {
@@ -39,9 +54,9 @@ const createUser = async (req: Request) => {
   // Generate or verify username
   let finalUsername = username;
   if (!finalUsername) {
-    let baseUsername = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    let baseUsername = name.toLowerCase().replace(/[^a-z0-9]/g, "");
     if (!baseUsername) {
-      baseUsername = 'user';
+      baseUsername = "user";
     }
     let isUsernameUnique = false;
     let counter = 0;
@@ -82,14 +97,15 @@ const createUser = async (req: Request) => {
       isSeller: isSeller ?? false,
       dietaryPreferences: dietaryPreferences ?? [],
       allergies: allergies ?? [],
-      profilePicture: req.body.profilePicture ?? "https://i.ibb.co.com/q2gwGfV/356306451-54b19ada-d53e-4ee9-8882-9dfed1bf1396.jpg",
+      profilePicture:
+        req.body.profilePicture ??
+        "https://i.ibb.co.com/q2gwGfV/356306451-54b19ada-d53e-4ee9-8882-9dfed1bf1396.jpg",
     },
   });
 
   const { password: _, ...userWithoutPassword } = result;
   return userWithoutPassword;
 };
-
 
 const findUserById = async (id: string) => {
   try {
@@ -102,8 +118,8 @@ const findUserById = async (id: string) => {
         role: true,
         profilePicture: true,
         createdAt: true,
-        updatedAt: true
-      }
+        updatedAt: true,
+      },
     });
     if (!user) {
       throw new ApiError(404, "User not found");
@@ -114,7 +130,6 @@ const findUserById = async (id: string) => {
     throw new ApiError(500, `Error finding user: ${error}`);
   }
 };
-
 
 const getAllUsers = async (query: Record<string, any>) => {
   // Normalize enum query parameters to uppercase to prevent case-sensitive mismatches with Prisma
@@ -130,7 +145,7 @@ const getAllUsers = async (query: Record<string, any>) => {
       if (!Object.values(UserStatus).includes(statusUpper as any)) {
         throw new ApiError(
           400,
-          `Invalid status value. Expected one of: ${Object.values(UserStatus).join(", ")}, or ${SellerRequestStatus.PENDING}`
+          `Invalid status value. Expected one of: ${Object.values(UserStatus).join(", ")}, or ${SellerRequestStatus.PENDING}`,
         );
       }
       normalizedQuery.status = statusUpper;
@@ -140,7 +155,10 @@ const getAllUsers = async (query: Record<string, any>) => {
   if (normalizedQuery.role && typeof normalizedQuery.role === "string") {
     const roleUpper = normalizedQuery.role.toUpperCase();
     if (!Object.values(UserRole).includes(roleUpper as any)) {
-      throw new ApiError(400, `Invalid role value. Expected one of: ${Object.values(UserRole).join(", ")}`);
+      throw new ApiError(
+        400,
+        `Invalid role value. Expected one of: ${Object.values(UserRole).join(", ")}`,
+      );
     }
     normalizedQuery.role = roleUpper;
   }
@@ -209,18 +227,54 @@ const getAllUsers = async (query: Record<string, any>) => {
   };
 };
 
-
-
 const getSingleUser = async (userId: string) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
+  const [user, recipesSaved, mealsCooked, groceryLists] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+    }),
+    prisma.bookmark.count({
+      where: { userId },
+    }),
+    prisma.order.count({
+      where: {
+        userId,
+        parentId: null, // count parent orders to avoid duplicating splits
+        status: {
+          in: [OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+        },
+      },
+    }),
+    prisma.groceryList.count({
+      where: {
+        members: {
+          some: {
+            userId,
+          },
+        },
+      },
+    }),
+  ]);
+
   if (!user) return null;
   const { password: _, ...userWithoutPassword } = user;
-  return userWithoutPassword;
+  return {
+    ...userWithoutPassword,
+    stats: {
+      recipesSaved,
+      mealsCooked,
+      groceryLists,
+    },
+    // Also include flat fields for easy direct access
+    recipesSaved,
+    mealsCooked,
+    groceryLists,
+  };
 };
 
-const userUpdateProfile = async (userId: string, payload: TUpdateProfilePayload) => {
+const userUpdateProfile = async (
+  userId: string,
+  payload: TUpdateProfilePayload,
+) => {
   const {
     name,
     phone,
@@ -253,7 +307,8 @@ const userUpdateProfile = async (userId: string, payload: TUpdateProfilePayload)
   if (gender !== undefined) updateData.gender = gender;
   if (address !== undefined) updateData.address = address;
   if (isSeller !== undefined) updateData.isSeller = isSeller;
-  if (dietaryPreferences !== undefined) updateData.dietaryPreferences = dietaryPreferences;
+  if (dietaryPreferences !== undefined)
+    updateData.dietaryPreferences = dietaryPreferences;
   if (allergies !== undefined) updateData.allergies = allergies;
 
   if (username !== undefined && username !== user.username) {
@@ -275,7 +330,10 @@ const userUpdateProfile = async (userId: string, payload: TUpdateProfilePayload)
   return userWithoutPassword;
 };
 
-const userUpdatePassword = async (userId: string, payload: TUpdatePasswordPayload) => {
+const userUpdatePassword = async (
+  userId: string,
+  payload: TUpdatePasswordPayload,
+) => {
   const { oldPassword, newPassword } = payload;
 
   if (!oldPassword || !newPassword) {
@@ -312,7 +370,10 @@ const userUpdatePassword = async (userId: string, payload: TUpdatePasswordPayloa
   return { message: "Password updated successfully" };
 };
 
-const userUpdateLanguageRegion = async (userId: string, payload: TUpdateLanguageRegionPayload) => {
+const userUpdateLanguageRegion = async (
+  userId: string,
+  payload: TUpdateLanguageRegionPayload,
+) => {
   const {
     language,
     country,
@@ -350,7 +411,10 @@ const userUpdateLanguageRegion = async (userId: string, payload: TUpdateLanguage
   return userWithoutPassword;
 };
 
-const userUpdateDietaryPreferences = async (userId: string, payload: TUpdateDietaryPreferencesPayload) => {
+const userUpdateDietaryPreferences = async (
+  userId: string,
+  payload: TUpdateDietaryPreferencesPayload,
+) => {
   const { dietaryPreferences } = payload;
 
   const user = await prisma.user.findUnique({
@@ -372,7 +436,10 @@ const userUpdateDietaryPreferences = async (userId: string, payload: TUpdateDiet
   return userWithoutPassword;
 };
 
-const userUpdateAllergies = async (userId: string, payload: TUpdateAllergiesPayload) => {
+const userUpdateAllergies = async (
+  userId: string,
+  payload: TUpdateAllergiesPayload,
+) => {
   const { allergies } = payload;
 
   const user = await prisma.user.findUnique({
@@ -394,7 +461,11 @@ const userUpdateAllergies = async (userId: string, payload: TUpdateAllergiesPayl
   return userWithoutPassword;
 };
 
-const changeUserStatus = async (userId: string, adminId: string, payload: TChangeUserStatusPayload) => {
+const changeUserStatus = async (
+  userId: string,
+  adminId: string,
+  payload: TChangeUserStatusPayload,
+) => {
   const { status } = payload;
 
   const user = await prisma.user.findUnique({
@@ -408,12 +479,18 @@ const changeUserStatus = async (userId: string, adminId: string, payload: TChang
 
   // Prevent admin from suspending/deactivating themselves
   if (userId === adminId) {
-    throw new ApiError(400, "You cannot suspend or deactivate your own account.");
+    throw new ApiError(
+      400,
+      "You cannot suspend or deactivate your own account.",
+    );
   }
 
   // Prevent main admin from being suspended or deactivated
   if (user.email === config.admin.email) {
-    throw new ApiError(403, "The main administrator cannot be suspended or deactivated.");
+    throw new ApiError(
+      403,
+      "The main administrator cannot be suspended or deactivated.",
+    );
   }
 
   const updatedUser = await prisma.user.update({
@@ -429,8 +506,8 @@ const changeUserStatus = async (userId: string, adminId: string, payload: TChang
       status === "SUSPENDED"
         ? SellerRequestStatus.SUSPENDED
         : status === "ACTIVE"
-        ? SellerRequestStatus.APPROVED
-        : user.sellerProfile.status;
+          ? SellerRequestStatus.APPROVED
+          : user.sellerProfile.status;
 
     await prisma.sellerProfile.update({
       where: { id: user.sellerProfile.id },
@@ -477,11 +554,15 @@ const switchUserRole = async (userId: string) => {
 
   // Only approved sellers (isSeller=true) can switch roles
   if (!user.isSeller) {
-    throw new ApiError(403, "You are not an approved seller. Please apply to become a seller first.");
+    throw new ApiError(
+      403,
+      "You are not an approved seller. Please apply to become a seller first.",
+    );
   }
 
   // Toggle between BUYER and SELLER
-  const newRole = user.role === UserRole.SELLER ? UserRole.BUYER : UserRole.SELLER;
+  const newRole =
+    user.role === UserRole.SELLER ? UserRole.BUYER : UserRole.SELLER;
 
   const updatedUser = await prisma.user.update({
     where: { id: userId },

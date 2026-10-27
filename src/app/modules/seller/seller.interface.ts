@@ -12,6 +12,7 @@ export interface TSubmitSellerRequestPayload {
   workingHours?: Record<string, { open?: string; close?: string; isOpen: boolean }>;
   pickupAvailable?: boolean;
   deliveryAvailable?: boolean;
+  kitchenImages?: string[];
   governmentId?: string;
 }
 
@@ -27,6 +28,7 @@ export interface TUpdateSellerProfilePayload {
   workingHours?: Record<string, { open?: string; close?: string; isOpen: boolean }>;
   pickupAvailable?: boolean;
   deliveryAvailable?: boolean;
+  kitchenImages?: string[];
   governmentId?: string;
   profilePicture?: string;
 }
