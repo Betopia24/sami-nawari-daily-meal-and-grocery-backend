@@ -12,7 +12,7 @@ const router = express.Router();
 router.post(
   "/request",
   auth(UserRole.BUYER),
-  fileUpload.upload.single("file"),
+  fileUpload.upload.any(),
   SellerController.submitSellerRequest
 );
 
@@ -27,7 +27,7 @@ router.get(
 router.patch(
   "/profile/me",
   auth(UserRole.SELLER),
-  fileUpload.upload.single("file"),
+  fileUpload.upload.any(),
   SellerController.updateSellerProfile
 );
 

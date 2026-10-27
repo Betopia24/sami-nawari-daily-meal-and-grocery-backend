@@ -60,6 +60,7 @@ const submitSellerRequest = async (
       workingHours: payload.workingHours ?? {},
       pickupAvailable: payload.pickupAvailable ?? false,
       deliveryAvailable: payload.deliveryAvailable ?? false,
+      kitchenImages: payload.kitchenImages ?? [],
     },
   });
 
