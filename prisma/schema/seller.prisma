@@ -32,6 +32,7 @@ model SellerProfile {
   workingHours      Json?
   pickupAvailable   Boolean             @default(false)
   deliveryAvailable Boolean             @default(false)
+  kitchenImages     String[]
   governmentId      String?
   status            SellerRequestStatus @default(PENDING)
   adminNote         String?
