@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NotificationType, SellerRequestStatus, UserRole } from "@prisma/client";
+import { NotificationType, SellerRequestStatus, UserRole, OrderStatus } from "@prisma/client";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import { NotificationService } from "../notification/notification.service";
@@ -69,27 +69,73 @@ const submitSellerRequest = async (
 
 
 const getMySellerProfile = async (userId: string) => {
-  const profile = await prisma.sellerProfile.findUnique({
-    where: { userId },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          isSeller: true,
-          profilePicture: true,
-        },
+  const sellerWhereCondition = {
+    parentId: { not: null },
+    items: {
+      some: {
+        sellerId: userId,
       },
     },
-  });
+  };
+
+  const [profile, totalOrders, pendingOrders, completedOrders] = await Promise.all([
+    prisma.sellerProfile.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            isSeller: true,
+            profilePicture: true,
+          },
+        },
+      },
+    }),
+    prisma.order.count({
+      where: sellerWhereCondition,
+    }),
+    prisma.order.count({
+      where: {
+        ...sellerWhereCondition,
+        status: {
+          in: [
+            OrderStatus.CONFIRMED,
+            OrderStatus.ACCEPTED,
+            OrderStatus.PREPARING,
+            OrderStatus.OUT_FOR_DELIVERY,
+            OrderStatus.PENDING_PAYMENT,
+          ],
+        },
+      },
+    }),
+    prisma.order.count({
+      where: {
+        ...sellerWhereCondition,
+        status: {
+          in: [OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+        },
+      },
+    }),
+  ]);
 
   if (!profile) {
     throw new ApiError(404, "Seller profile not found. Please submit a seller request first.");
   }
 
-  return profile;
+  return {
+    ...profile,
+    stats: {
+      orders: totalOrders,
+      pending: pendingOrders,
+      completed: completedOrders,
+    },
+    orders: totalOrders,
+    pending: pendingOrders,
+    completed: completedOrders,
+  };
 };
 
 
