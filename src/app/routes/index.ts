@@ -10,6 +10,7 @@ import { OrderRoutes } from "../modules/order/order.route";
 import { BookmarkRoutes } from "../modules/bookmark/bookmark.route";
 import { ReviewRoutes } from "../modules/review/review.route";
 import { ExploreRoutes } from "../modules/explore/explore.route";
+import { PaymentRoutes } from "../modules/payment/payment.route";
 
 import { AIPublicRoutes } from "../modules/ai/ai.public.route";
 
@@ -23,6 +24,7 @@ router.use("/notifications", NotificationRoutes);
 router.use("/foods", FoodRoutes);
 router.use("/cart", CartRoutes);
 router.use("/orders", OrderRoutes);
+router.use("/payments", PaymentRoutes);
 router.use("/bookmarks", BookmarkRoutes);
 router.use("/reviews", ReviewRoutes);
 router.use("/explore", ExploreRoutes);

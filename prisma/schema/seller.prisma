@@ -30,14 +30,18 @@ model SellerProfile {
   averageRating     Float               @default(0)
   reviewCount       Int                 @default(0)
   workingHours      Json?
-  pickupAvailable   Boolean             @default(false)
-  deliveryAvailable Boolean             @default(false)
-  kitchenImages     String[]
-  governmentId      String?
-  status            SellerRequestStatus @default(PENDING)
-  adminNote         String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  pickupAvailable           Boolean             @default(false)
+  deliveryAvailable         Boolean             @default(false)
+  kitchenImages             String[]
+  governmentId              String?
+  status                    SellerRequestStatus @default(PENDING)
+  adminNote                 String?
+  stripeAccountId           String?
+  stripeChargesEnabled      Boolean             @default(false)
+  stripePayoutsEnabled      Boolean             @default(false)
+  stripeOnboardingCompleted Boolean             @default(false)
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
 
   @@map("seller_profiles")
 }
