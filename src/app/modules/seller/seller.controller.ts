@@ -227,6 +227,42 @@ const changeSellerStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const createStripeConnectAccount = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+  const decodedUser = req.user as any;
+  const result = await SellerService.createStripeConnectAccount(decodedUser.userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Stripe Connect onboarding link created successfully",
+    data: result,
+  });
+});
+
+const getStripeAccountStatus = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+  const decodedUser = req.user as any;
+  const result = await SellerService.getStripeAccountStatus(decodedUser.userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Stripe Connect status retrieved successfully",
+    data: result,
+  });
+});
+
+const createStripeDashboardLink = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+  const decodedUser = req.user as any;
+  const result = await SellerService.createStripeDashboardLink(decodedUser.userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Stripe login dashboard link created successfully",
+    data: result,
+  });
+});
+
 export const SellerController = {
   submitSellerRequest,
   getMySellerProfile,
@@ -236,4 +272,7 @@ export const SellerController = {
   getSellerRequestById,
   approveOrRejectSellerRequest,
   changeSellerStatus,
+  createStripeConnectAccount,
+  getStripeAccountStatus,
+  createStripeDashboardLink,
 };

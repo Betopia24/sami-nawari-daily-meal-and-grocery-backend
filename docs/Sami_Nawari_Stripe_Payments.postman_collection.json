@@ -1,0 +1,442 @@
+{
+  "info": {
+    "_postman_id": "b8a91c34-5829-4d29-a1b4-e20b33c099d8",
+    "name": "Sami Nawari - Stripe & Payments API",
+    "description": "Collection of all Seller Stripe Connect and Buyer Online Payment APIs with sample request bodies, parameters, and responses.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Seller - Stripe Connect",
+      "item": [
+        {
+          "name": "Create Stripe Connect Onboarding Link",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{seller_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/seller/stripe/connect",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "stripe", "connect"]
+            },
+            "description": "Creates or retrieves an Express Stripe Connected Account for the authenticated seller and returns the onboarding URL."
+          },
+          "response": [
+            {
+              "name": "200 - Onboarding Link Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/seller/stripe/connect",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["seller", "stripe", "connect"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Stripe Connect onboarding link created successfully\",\n  \"data\": {\n    \"url\": \"https://connect.stripe.com/setup/s/acct_1OuXXXXX/abc123XYZ\",\n    \"stripeAccountId\": \"acct_1OuXXXXX\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Stripe Account Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{seller_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/seller/stripe/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "stripe", "status"]
+            },
+            "description": "Checks the seller's Stripe Connect verification and payout capability directly from Stripe and syncs it with the database."
+          },
+          "response": [
+            {
+              "name": "200 - Connected & Charges Enabled",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Stripe Connect status retrieved successfully\",\n  \"data\": {\n    \"connected\": true,\n    \"stripeAccountId\": \"acct_1OuXXXXX\",\n    \"chargesEnabled\": true,\n    \"payoutsEnabled\": true,\n    \"detailsSubmitted\": true\n  }\n}"
+            },
+            {
+              "name": "200 - Not Connected Yet",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Stripe Connect status retrieved successfully\",\n  \"data\": {\n    \"connected\": false,\n    \"stripeAccountId\": null,\n    \"chargesEnabled\": false,\n    \"payoutsEnabled\": false,\n    \"detailsSubmitted\": false\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Stripe Express Dashboard Link",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{seller_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/seller/stripe/dashboard-link",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "stripe", "dashboard-link"]
+            },
+            "description": "Generates a single-sign-on login link for the seller to view their payouts, bank info, and earnings on the Stripe Express Dashboard."
+          },
+          "response": [
+            {
+              "name": "200 - Dashboard Login Link Created",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Stripe login dashboard link created successfully\",\n  \"data\": {\n    \"url\": \"https://connect.stripe.com/express/acct_1OuXXXXX/login/xyz789\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get My Seller Profile (with Order Stats)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{seller_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/seller/profile/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "profile", "me"]
+            },
+            "description": "Retrieves the authenticated seller profile, including kitchen images and order counts (Total Orders, Pending Orders, Completed Orders)."
+          },
+          "response": [
+            {
+              "name": "200 - Seller Profile with Stats",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Seller profile retrieved successfully\",\n  \"data\": {\n    \"id\": \"68f1c841bb2a0011eeaa9911\",\n    \"userId\": \"68f1c841bb2a0011eeaa9910\",\n    \"businessName\": \"Rafi's Kitchen\",\n    \"ownerName\": \"Rafiul Islam\",\n    \"phone\": \"+8801700000000\",\n    \"cuisineTypes\": [\"BENGALI\", \"ASIAN\"],\n    \"description\": \"Authentic home cooked meals delivered daily.\",\n    \"address\": \"Dhanmondi 27, Dhaka\",\n    \"kitchenImages\": [\n      \"https://res.cloudinary.com/demo/image/upload/k1.jpg\",\n      \"https://res.cloudinary.com/demo/image/upload/k2.jpg\",\n      \"https://res.cloudinary.com/demo/image/upload/k3.jpg\",\n      \"https://res.cloudinary.com/demo/image/upload/k4.jpg\",\n      \"https://res.cloudinary.com/demo/image/upload/k5.jpg\"\n    ],\n    \"stripeAccountId\": \"acct_1OuXXXXX\",\n    \"stripeChargesEnabled\": true,\n    \"stripePayoutsEnabled\": true,\n    \"stripeOnboardingCompleted\": true,\n    \"status\": \"APPROVED\",\n    \"stats\": {\n      \"orders\": 5,\n      \"pending\": 2,\n      \"completed\": 12\n    },\n    \"orders\": 5,\n    \"pending\": 2,\n    \"completed\": 12,\n    \"user\": {\n      \"id\": \"68f1c841bb2a0011eeaa9910\",\n      \"name\": \"Rafiul Islam\",\n      \"email\": \"rafi@email.com\",\n      \"role\": \"SELLER\",\n      \"isSeller\": true,\n      \"profilePicture\": \"https://i.ibb.co.com/q2gwGfV/profile.jpg\"\n    }\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Buyer - Checkout & Online Payment",
+      "item": [
+        {
+          "name": "1. Create Order (paymentMethod ONLINE)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deliveryAddress\": {\n    \"streetAddress\": \"123 Green Road\",\n    \"city\": \"Dhaka\",\n    \"state\": \"Dhaka\",\n    \"postalCode\": \"1205\",\n    \"country\": \"Bangladesh\"\n  },\n  \"recipientName\": \"Buyer User\",\n  \"contactPhone\": \"+8801800000000\",\n  \"paymentMethod\": \"ONLINE\",\n  \"note\": \"Please deliver warm and ring the bell\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"]
+            },
+            "description": "Places an order from the buyer's active cart. If paymentMethod is ONLINE, status is set to PENDING_PAYMENT."
+          },
+          "response": [
+            {
+              "name": "201 - Order Created (Pending Payment)",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 201,\n  \"success\": true,\n  \"message\": \"Order placed successfully\",\n  \"data\": {\n    \"id\": \"68f230aa771c9900eeaa1234\",\n    \"orderNumber\": \"ORD-20261027-00001\",\n    \"userId\": \"68f1c841bb2a0011eeaa8888\",\n    \"subTotal\": 45,\n    \"deliveryFee\": 5,\n    \"totalPrice\": 50,\n    \"status\": \"PENDING_PAYMENT\",\n    \"paymentStatus\": \"PENDING\",\n    \"paymentMethod\": \"ONLINE\",\n    \"items\": [\n      {\n        \"foodId\": \"68f20011bb2a0011eeaa5555\",\n        \"foodName\": \"Chicken Khichuri\",\n        \"quantity\": 2,\n        \"unitPrice\": 22.5,\n        \"subtotal\": 45,\n        \"sellerId\": \"68f1c841bb2a0011eeaa9910\"\n      }\n    ],\n    \"childOrders\": [\n      {\n        \"id\": \"68f230aa771c9900eeaa1235\",\n        \"orderNumber\": \"ORD-20261027-00001-S1\",\n        \"subTotal\": 45,\n        \"deliveryFee\": 5,\n        \"totalPrice\": 50,\n        \"status\": \"PENDING_PAYMENT\",\n        \"paymentStatus\": \"PENDING\",\n        \"parentId\": \"68f230aa771c9900eeaa1234\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "2. Create Stripe Checkout Session (Pay Order)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"68f230aa771c9900eeaa1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/create-checkout-session",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "create-checkout-session"]
+            },
+            "description": "Generates a hosted Stripe Checkout URL for the buyer. Funds are directed to the connected seller account."
+          },
+          "response": [
+            {
+              "name": "200 - Checkout Session Created",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Stripe Checkout session created successfully\",\n  \"data\": {\n    \"url\": \"https://checkout.stripe.com/c/pay/cs_test_a1b2c3d4e5f6g7h8...\",\n    \"sessionId\": \"cs_test_a1b2c3d4e5f6g7h8...\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "3. Get Buyer Profile (with Recipes, Meals, Grocery Stats)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Retrieves the logged-in buyer user profile along with stats (Recipes Saved, Meals Cooked / Completed Orders, Grocery Lists count)."
+          },
+          "response": [
+            {
+              "name": "200 - User Profile with Stats",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Current user retrieved successfully\",\n  \"data\": {\n    \"id\": \"68f1c841bb2a0011eeaa8888\",\n    \"name\": \"Rafiul Islam\",\n    \"email\": \"rafi@email.com\",\n    \"role\": \"BUYER\",\n    \"profilePicture\": \"https://i.ibb.co.com/q2gwGfV/profile.jpg\",\n    \"stats\": {\n      \"recipesSaved\": 3,\n      \"mealsCooked\": 47,\n      \"groceryLists\": 12\n    },\n    \"recipesSaved\": 3,\n    \"mealsCooked\": 47,\n    \"groceryLists\": 12\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Stripe Webhook (Internal / Stripe Trigger)",
+      "item": [
+        {
+          "name": "Stripe Webhook Listener",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "stripe-signature",
+                "value": "t=1730000000,v1=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_1OuXXXXX\",\n  \"object\": \"event\",\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"cs_test_a1b2c3d4\",\n      \"metadata\": {\n        \"orderId\": \"68f230aa771c9900eeaa1234\",\n        \"userId\": \"68f1c841bb2a0011eeaa8888\"\n      },\n      \"payment_status\": \"paid\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{serverUrl}}/webhook",
+              "host": ["{{serverUrl}}"],
+              "path": ["webhook"]
+            },
+            "description": "Receives asynchronous events directly from Stripe. Handles account.updated (seller onboarding), checkout.session.completed, and payment_intent.succeeded."
+          },
+          "response": [
+            {
+              "name": "200 - Webhook Processed",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Webhook handled successfully\",\n  \"data\": {\n    \"received\": true\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5478/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "serverUrl",
+      "value": "http://localhost:5478",
+      "type": "string"
+    },
+    {
+      "key": "seller_token",
+      "value": "YOUR_SELLER_JWT_TOKEN",
+      "type": "string"
+    },
+    {
+      "key": "buyer_token",
+      "value": "YOUR_BUYER_JWT_TOKEN",
+      "type": "string"
+    }
+  ]
+}
