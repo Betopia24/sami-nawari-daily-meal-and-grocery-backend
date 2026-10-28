@@ -263,6 +263,30 @@ const createStripeDashboardLink = catchAsync(async (req: Request & { user?: any 
   });
 });
 
+const getSellerEarningsOverview = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+  const decodedUser = req.user as any;
+  const result = await SellerService.getSellerEarningsOverview(decodedUser.userId, req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Seller earnings overview retrieved successfully",
+    data: result,
+  });
+});
+
+const getSellerEarningsHistory = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+  const decodedUser = req.user as any;
+  const result = await SellerService.getSellerEarningsHistory(decodedUser.userId, req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Seller earnings history retrieved successfully",
+    data: result,
+  });
+});
+
 export const SellerController = {
   submitSellerRequest,
   getMySellerProfile,
@@ -275,4 +299,6 @@ export const SellerController = {
   createStripeConnectAccount,
   getStripeAccountStatus,
   createStripeDashboardLink,
+  getSellerEarningsOverview,
+  getSellerEarningsHistory,
 };

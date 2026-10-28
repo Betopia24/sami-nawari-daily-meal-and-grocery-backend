@@ -21,6 +21,7 @@ import {
   TUpdateAllergiesPayload,
   TChangeUserStatusPayload,
 } from "./user.interface";
+import { AIService } from "../ai/ai.service";
 
 const createUser = async (req: Request) => {
   const {
@@ -311,6 +312,27 @@ const userUpdateProfile = async (
     updateData.dietaryPreferences = dietaryPreferences;
   if (allergies !== undefined) updateData.allergies = allergies;
 
+  const aiProfileChanged =
+    dietaryPreferences !== undefined ||
+    allergies !== undefined ||
+    (payload as any).preferredCuisines !== undefined ||
+    (payload as any).nutritionGoal !== undefined ||
+    (payload as any).householdSize !== undefined ||
+    (payload as any).cookingFrequency !== undefined;
+
+  if ((payload as any).preferredCuisines !== undefined)
+    updateData.preferredCuisines = (payload as any).preferredCuisines;
+  if ((payload as any).nutritionGoal !== undefined)
+    updateData.nutritionGoal = (payload as any).nutritionGoal;
+  if ((payload as any).householdSize !== undefined)
+    updateData.householdSize = Number((payload as any).householdSize);
+  if ((payload as any).cookingFrequency !== undefined)
+    updateData.cookingFrequency = (payload as any).cookingFrequency;
+
+  if (aiProfileChanged) {
+    updateData.profileVersion = ((user as any).profileVersion || 1) + 1;
+  }
+
   if (username !== undefined && username !== user.username) {
     const existingUsername = await prisma.user.findUnique({
       where: { username },
@@ -325,6 +347,13 @@ const userUpdateProfile = async (
     where: { id: userId },
     data: updateData,
   });
+
+  if (aiProfileChanged) {
+    void AIService.invalidateUserProfileCache(
+      userId,
+      (updatedUser as any).profileVersion || 1,
+    );
+  }
 
   const { password: _, ...userWithoutPassword } = updatedUser;
   return userWithoutPassword;
@@ -394,7 +423,10 @@ const userUpdateLanguageRegion = async (
 
   const updateData: any = {};
 
-  if (language !== undefined) updateData.language = language;
+  if (language !== undefined) {
+    updateData.language = language;
+    updateData.profileVersion = ((user as any).profileVersion || 1) + 1;
+  }
   if (country !== undefined) updateData.country = country;
   if (timeZone !== undefined) updateData.timeZone = timeZone;
   if (dateFormat !== undefined) updateData.dateFormat = dateFormat;
@@ -406,6 +438,13 @@ const userUpdateLanguageRegion = async (
     where: { id: userId },
     data: updateData,
   });
+
+  if (language !== undefined) {
+    void AIService.invalidateUserProfileCache(
+      userId,
+      (updatedUser as any).profileVersion || 1,
+    );
+  }
 
   const { password: _, ...userWithoutPassword } = updatedUser;
   return userWithoutPassword;
@@ -425,12 +464,17 @@ const userUpdateDietaryPreferences = async (
     throw new ApiError(404, "User not found");
   }
 
+  const nextVersion = ((user as any).profileVersion || 1) + 1;
+
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: {
       dietaryPreferences,
+      profileVersion: nextVersion,
     },
   });
+
+  void AIService.invalidateUserProfileCache(userId, nextVersion);
 
   const { password: _, ...userWithoutPassword } = updatedUser;
   return userWithoutPassword;
@@ -450,12 +494,17 @@ const userUpdateAllergies = async (
     throw new ApiError(404, "User not found");
   }
 
+  const nextVersion = ((user as any).profileVersion || 1) + 1;
+
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: {
       allergies,
+      profileVersion: nextVersion,
     },
   });
+
+  void AIService.invalidateUserProfileCache(userId, nextVersion);
 
   const { password: _, ...userWithoutPassword } = updatedUser;
   return userWithoutPassword;
