@@ -44,11 +44,11 @@ const getSellerMenu = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getSellerAbout = catchAsync(async (req: Request, res: Response) => {
+const getSellerAbout = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const { id } = req.params;
-  // Note: `id` here is the User ID (User.id), not the SellerProfile.id.
-  // The explore/sellers list returns `userId` which should be passed as :id here.
-  const result = await ExploreService.getSellerAbout(id as string);
+  const userId = req.user?.userId;
+  // Note: `id` here can be either User ID (User.id) or SellerProfile.id.
+  const result = await ExploreService.getSellerAbout(id as string, userId);
 
   sendResponse(res, {
     statusCode: 200,

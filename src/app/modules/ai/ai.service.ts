@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from "http-status";
+import { v4 as uuidv4 } from "uuid";
 import config from "../../config";
 import ApiError from "../../errors/apiError";
+import { prisma } from "../../prisma/prisma";
 import { objectIdToUuid } from "./ai.utils";
 
 const getBaseUrl = (): string => config.aiService.baseUrl.replace(/\/$/, "");
@@ -21,14 +23,18 @@ const request = async <T>(
   const url = `${baseUrl}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 
   const headers: Record<string, string> = {
-    "Authorization": `Bearer ${serviceToken}`,
     "X-User-ID": userUuid,
+    "X-Request-ID": extraHeaders?.["X-Request-ID"] || uuidv4(),
     "Content-Type": "application/json",
     ...extraHeaders,
   };
 
+  if (serviceToken) {
+    headers["Authorization"] = `Bearer ${serviceToken}`;
+  }
+
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
     const response = await fetch(url, {
@@ -40,10 +46,18 @@ const request = async <T>(
 
     clearTimeout(timeoutId);
 
+    if (response.status === 204) {
+      return {} as T;
+    }
+
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      const errorMsg = data?.detail || data?.message || `AI Service HTTP Error: ${response.status}`;
+      const errorMsg =
+        data?.error?.message ||
+        data?.detail ||
+        data?.message ||
+        `AI Service HTTP Error: ${response.status}`;
       throw new ApiError(response.status, errorMsg);
     }
 
@@ -52,7 +66,7 @@ const request = async <T>(
     clearTimeout(timeoutId);
     if (err instanceof ApiError) throw err;
     if (err.name === "AbortError") {
-      throw new ApiError(httpStatus.GATEWAY_TIMEOUT, "AI Service request timed out after 10 seconds");
+      throw new ApiError(httpStatus.GATEWAY_TIMEOUT, "AI Service request timed out");
     }
     throw new ApiError(httpStatus.BAD_GATEWAY, `Failed to communicate with AI Backend: ${err.message}`);
   }
@@ -81,13 +95,48 @@ const getRecipeRecommendations = async (userId: string, payload: any) => {
 
 const generateMealPlan = async (userId: string, payload: any, idempotencyKey?: string) => {
   const extraHeaders: Record<string, string> | undefined = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
-  return request("/internal/v1/meal-plans/generate", "POST", userId, {
-    start_date: payload.start_date || payload.startDate || new Date().toISOString().split("T")[0],
+  const startDate = payload.start_date || payload.startDate || new Date().toISOString().split("T")[0];
+
+  const response: any = await request("/internal/v1/meal-plans/generate", "POST", userId, {
+    start_date: startDate,
     days: payload.days || 3,
     meals_per_day: payload.meals_per_day || payload.mealsPerDay || ["breakfast", "lunch", "dinner"],
     goal_override: payload.goal_override || null,
     excluded_recipe_ids: payload.excluded_recipe_ids || [],
   }, extraHeaders);
+
+  const planData = response?.data || response;
+  const planId = planData?.plan_id || planData?.id || uuidv4();
+  const days = Array.isArray(planData?.days) ? planData.days : [];
+  const version = typeof planData?.version === "number" ? planData.version : 1;
+
+  const savedPlan = await prisma.mealPlan.upsert({
+    where: { planId },
+    update: {
+      version,
+      startDate,
+      days,
+      rawResponse: planData,
+    },
+    create: {
+      planId,
+      userId,
+      version,
+      startDate,
+      days,
+      rawResponse: planData,
+    },
+  });
+
+  if (response?.data) {
+    response.data.plan_id = savedPlan.planId;
+    response.data.id = savedPlan.id;
+  } else if (typeof response === "object" && response !== null) {
+    response.plan_id = savedPlan.planId;
+    response.id = savedPlan.id;
+  }
+
+  return response;
 };
 
 
@@ -170,6 +219,18 @@ const trackRecommendationEvent = async (userId: string, payload: any) => {
   });
 };
 
+const invalidateUserProfileCache = async (userId: string, profileVersion: number) => {
+  const userUuid = objectIdToUuid(userId);
+  try {
+    return await request(`/internal/v1/users/${userUuid}/profile-cache/invalidate`, "POST", userId, {
+      profile_version: profileVersion,
+    });
+  } catch {
+    // Non-blocking: if AI server is offline or unreachable during user profile update, do not fail the user update
+    return null;
+  }
+};
+
 export const AIService = {
   getFoodRecommendations,
   getRecipeRecommendations,
@@ -184,6 +245,7 @@ export const AIService = {
   generateSellerRecipeDraft,
   regenerateSellerRecipeDraft,
   trackRecommendationEvent,
+  invalidateUserProfileCache,
 };
 
 export const aiService = AIService;

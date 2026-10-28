@@ -7,8 +7,9 @@ export const internalAuth = (req: Request, res: Response, next: NextFunction) =>
   try {
     let token = req.headers.authorization;
 
+    // Support simplified setup where AI Server calls Main Backend on private network without a service token
     if (!token) {
-      throw new ApiError(httpStatus.UNAUTHORIZED, "Internal service authorization token is required!");
+      return next();
     }
 
     if (typeof token === "string" && token.startsWith("Bearer ")) {
@@ -17,7 +18,7 @@ export const internalAuth = (req: Request, res: Response, next: NextFunction) =>
 
     const expectedToken = config.aiService.mainBackendServiceToken;
 
-    if (token !== expectedToken) {
+    if (expectedToken && token && token !== expectedToken) {
       throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid internal service token!");
     }
 

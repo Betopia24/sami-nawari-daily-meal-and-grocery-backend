@@ -5,6 +5,7 @@ import validateRequest from "../../middlewares/validateRequest";
 import { fileUpload } from "../../utils/fileUpload";
 import { SellerController } from "./seller.controller";
 import { sellerValidation } from "./seller.validation";
+import { BookmarkController } from "../bookmark/bookmark.controller";
 
 const router = express.Router();
 
@@ -14,6 +15,26 @@ router.post(
   auth(UserRole.BUYER),
   fileUpload.upload.any(),
   SellerController.submitSellerRequest
+);
+
+//* ─── Buyer Favorite Sellers Routes ──────────────────────────────────────────
+
+router.get(
+  "/favorites",
+  auth(UserRole.BUYER, UserRole.SELLER),
+  BookmarkController.getMyFavoriteSellers
+);
+
+router.post(
+  "/favorites/toggle",
+  auth(UserRole.BUYER, UserRole.SELLER),
+  BookmarkController.toggleFavoriteSeller
+);
+
+router.post(
+  "/:sellerId/favorite",
+  auth(UserRole.BUYER, UserRole.SELLER),
+  BookmarkController.toggleFavoriteSeller
 );
 
 
@@ -49,6 +70,20 @@ router.post(
   "/stripe/dashboard-link",
   auth(UserRole.SELLER),
   SellerController.createStripeDashboardLink
+);
+
+//* ─── Seller Earnings Routes ─────────────────────────────────────────────────
+
+router.get(
+  "/earnings",
+  auth(UserRole.SELLER),
+  SellerController.getSellerEarningsOverview
+);
+
+router.get(
+  "/earnings/history",
+  auth(UserRole.SELLER),
+  SellerController.getSellerEarningsHistory
 );
 
 

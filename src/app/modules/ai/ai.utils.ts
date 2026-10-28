@@ -35,17 +35,21 @@ export const normalizeUnit = (unit: string): string => {
 
 export const mapUserToUserAIProfile = (user: any): UserAIProfile => {
   const userIdUuid = objectIdToUuid(user.id || user._id?.toString());
+  const rawFavorites = Array.isArray(user.favoriteSellers)
+    ? user.favoriteSellers.map((fav: any) => fav.seller?.userId || fav.sellerId || fav)
+    : user.favoriteSellerIds || [];
+
   return {
     user_id: userIdUuid,
     profile_version: user.profileVersion || 1,
     dietary_preferences: (user.dietaryPreferences || []).map((p: string) => p.toLowerCase()),
     allergies: (user.allergies || []).map((a: string) => a.toLowerCase()),
-    preferred_cuisines: (user.preferredCuisines || ["bangladeshi"]).map((c: string) => c.toLowerCase()),
+    preferred_cuisines: (user.preferredCuisines?.length ? user.preferredCuisines : ["bangladeshi"]).map((c: string) => c.toLowerCase()),
     nutrition_goal: user.nutritionGoal ? user.nutritionGoal.toLowerCase() : "healthy",
-    household_size: typeof user.householdSize === "number" ? user.householdSize : 1,
+    household_size: typeof user.householdSize === "number" && user.householdSize > 0 ? user.householdSize : 1,
     cooking_frequency: user.cookingFrequency || null,
     language: user.language || "en",
-    favorite_seller_ids: (user.favoriteSellerIds || []).map((s: any) => objectIdToUuid(s.toString())),
+    favorite_seller_ids: rawFavorites.filter(Boolean).map((s: any) => objectIdToUuid(s.toString())),
     behavior_affinity: user.behaviorAffinity || {},
   };
 };
@@ -130,7 +134,7 @@ export const mapRecipeToRecipe = (recipe: any): Recipe => {
 
 export const mapMealPlanToStoredMealPlan = (plan: any): StoredMealPlan => {
   const userIdUuid = objectIdToUuid(plan.userId || plan.user_id || plan.user?.id);
-  const rawPlanId = plan.id || plan.plan_id || plan._id?.toString();
+  const rawPlanId = plan.planId || plan.plan_id || plan.id || plan._id?.toString();
   const rawDays = Array.isArray(plan.days) ? plan.days : [];
   const days: MealPlanDay[] = rawDays.map((day: any) => ({
     date: day.date || new Date().toISOString().split("T")[0],
@@ -138,12 +142,12 @@ export const mapMealPlanToStoredMealPlan = (plan: any): StoredMealPlan => {
       meal_item_id: m.meal_item_id || m.id || `mpi_${idx + 1}`,
       meal_type: (m.meal_type || m.mealType || "lunch").toLowerCase(),
       recipe_id: objectIdToUuid(m.recipe_id || m.recipeId || "r1"),
-      servings: typeof m.servings === "number" ? m.servings : 2,
+      servings: typeof m.servings === "number" && m.servings > 0 ? m.servings : 2,
     })),
   }));
 
   return {
-    plan_id: objectIdToUuid(rawPlanId),
+    plan_id: rawPlanId,
     user_id: userIdUuid,
     version: plan.version || 1,
     days,
@@ -152,9 +156,11 @@ export const mapMealPlanToStoredMealPlan = (plan: any): StoredMealPlan => {
 
 
 export const mapSellerFoodToSellerFoodDraft = (draft: any): SellerFoodDraft => {
-  const sellerUserUuid = objectIdToUuid(draft.sellerUserId || draft.seller_user_id || draft.userId);
+  const sellerUserUuid = objectIdToUuid(
+    draft.sellerId || draft.sellerUserId || draft.seller_user_id || draft.userId || draft.seller?.id,
+  );
   const rawFoodId = draft.id || draft.food_id || draft._id?.toString();
-  const rawSellerId = draft.sellerId || draft.seller_id || "seller_1";
+  const rawSellerId = draft.sellerId || draft.seller_id || draft.seller?.sellerProfile?.id || "seller_1";
   const rawIngredients = Array.isArray(draft.ingredients) ? draft.ingredients : [];
   const ingredients: IngredientAmount[] = rawIngredients.map((ing: any) => ({
     ingredient_id: ing.ingredient_id || ing.id || ing.name?.toLowerCase().replace(/\s+/g, "_") || "unknown",
