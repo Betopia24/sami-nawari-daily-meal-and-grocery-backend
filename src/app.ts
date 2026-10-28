@@ -61,6 +61,7 @@ app.get("/", (req: Request, res: Response) => {
 app.set("trust proxy", 1);
 
 app.use("/internal/ai", AIInternalRoutes);
+app.use("/api/v1/internal/ai", AIInternalRoutes);
 app.use("/api/v1", router);
 
 app.use(notFound);
