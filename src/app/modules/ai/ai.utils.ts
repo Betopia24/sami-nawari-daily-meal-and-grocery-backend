@@ -36,7 +36,7 @@ export const normalizeUnit = (unit: string): string => {
 export const mapUserToUserAIProfile = (user: any): UserAIProfile => {
   const userIdUuid = objectIdToUuid(user.id || user._id?.toString());
   const rawFavorites = Array.isArray(user.favoriteSellers)
-    ? user.favoriteSellers.map((fav: any) => fav.seller?.userId || fav.sellerId || fav)
+    ? user.favoriteSellers.map((fav: any) => fav.sellerProfile?.userId || fav.sellerProfileId || fav)
     : user.favoriteSellerIds || [];
 
   return {
