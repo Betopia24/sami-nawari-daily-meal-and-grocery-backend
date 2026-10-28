@@ -214,6 +214,120 @@
               "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Seller profile retrieved successfully\",\n  \"data\": {\n    \"id\": \"68f1c841bb2a0011eeaa9911\",\n    \"userId\": \"68f1c841bb2a0011eeaa9910\",\n    \"businessName\": \"Rafi's Kitchen\",\n    \"ownerName\": \"Rafiul Islam\",\n    \"phone\": \"+8801700000000\",\n    \"cuisineTypes\": [\"BENGALI\", \"ASIAN\"],\n    \"description\": \"Authentic home cooked meals delivered daily.\",\n    \"address\": \"Dhanmondi 27, Dhaka\",\n    \"kitchenImages\": [\n      \"https://res.cloudinary.com/demo/image/upload/k1.jpg\",\n      \"https://res.cloudinary.com/demo/image/upload/k2.jpg\",\n      \"https://res.cloudinary.com/demo/image/upload/k3.jpg\",\n      \"https://res.cloudinary.com/demo/image/upload/k4.jpg\",\n      \"https://res.cloudinary.com/demo/image/upload/k5.jpg\"\n    ],\n    \"stripeAccountId\": \"acct_1OuXXXXX\",\n    \"stripeChargesEnabled\": true,\n    \"stripePayoutsEnabled\": true,\n    \"stripeOnboardingCompleted\": true,\n    \"status\": \"APPROVED\",\n    \"stats\": {\n      \"orders\": 5,\n      \"pending\": 2,\n      \"completed\": 12\n    },\n    \"orders\": 5,\n    \"pending\": 2,\n    \"completed\": 12,\n    \"user\": {\n      \"id\": \"68f1c841bb2a0011eeaa9910\",\n      \"name\": \"Rafiul Islam\",\n      \"email\": \"rafi@email.com\",\n      \"role\": \"SELLER\",\n      \"isSeller\": true,\n      \"profilePicture\": \"https://i.ibb.co.com/q2gwGfV/profile.jpg\"\n    }\n  }\n}"
             }
           ]
+        },
+        {
+          "name": "Get Seller Earnings Overview (Screen 1)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{seller_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/seller/earnings?period=this_month",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "earnings"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "this_month",
+                  "description": "this_month | last_month | this_year | all"
+                },
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "8",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns the seller's Total Earnings, % growth from last month, chart data points, Completed Orders count, Pending Earnings, and Available Balance."
+          },
+          "response": [
+            {
+              "name": "200 - Seller Earnings Overview",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Seller earnings overview retrieved successfully\",\n  \"data\": {\n    \"period\": \"this_month\",\n    \"totalEarnings\": 240.5,\n    \"earningsGrowthPercentage\": 18.5,\n    \"completedOrders\": {\n      \"count\": 32,\n      \"growthPercentage\": 12.3\n    },\n    \"pendingEarnings\": {\n      \"amount\": 120,\n      \"ordersCount\": 2,\n      \"stripePendingBalance\": 120\n    },\n    \"availableBalance\": {\n      \"amount\": 120.5,\n      \"readyForWithdraw\": true\n    },\n    \"chartData\": [\n      {\n        \"label\": \"Aug 1\",\n        \"date\": \"2026-08-01\",\n        \"earnings\": 10,\n        \"cumulativeEarnings\": 10\n      },\n      {\n        \"label\": \"Aug 5\",\n        \"date\": \"2026-08-05\",\n        \"earnings\": 45,\n        \"cumulativeEarnings\": 55\n      },\n      {\n        \"label\": \"Aug 10\",\n        \"date\": \"2026-08-10\",\n        \"earnings\": 45,\n        \"cumulativeEarnings\": 100\n      },\n      {\n        \"label\": \"Aug 15\",\n        \"date\": \"2026-08-15\",\n        \"earnings\": 0,\n        \"cumulativeEarnings\": 100\n      },\n      {\n        \"label\": \"Aug 20\",\n        \"date\": \"2026-08-20\",\n        \"earnings\": 55,\n        \"cumulativeEarnings\": 155\n      },\n      {\n        \"label\": \"Aug 25\",\n        \"date\": \"2026-08-25\",\n        \"earnings\": 45,\n        \"cumulativeEarnings\": 200\n      },\n      {\n        \"label\": \"Aug 31\",\n        \"date\": \"2026-08-31\",\n        \"earnings\": 40.5,\n        \"cumulativeEarnings\": 240.5\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Seller Earnings History (Screen 2)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{seller_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/seller/earnings/history?period=this_month&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "earnings", "history"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "this_month",
+                  "description": "this_month | last_month | this_year | all"
+                },
+                {
+                  "key": "paymentMethod",
+                  "value": "ONLINE",
+                  "description": "Optional: ONLINE | CASH_ON_DELIVERY",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Returns paginated earnings transaction history grouped by Month & Year (e.g. 'August 2026'), with order numbers, amounts, timestamps, and payment labels ('Online Paid', 'Cash on Delivery')."
+          },
+          "response": [
+            {
+              "name": "200 - Seller Earnings History",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Seller earnings history retrieved successfully\",\n  \"data\": {\n    \"meta\": {\n      \"page\": 1,\n      \"limit\": 20,\n      \"total\": 4,\n      \"totalPage\": 1\n    },\n    \"transactions\": [\n      {\n        \"id\": \"68f230aa771c9900eeaa1235\",\n        \"orderNumber\": \"#ORD-20260830-01011-S1\",\n        \"rawOrderNumber\": \"ORD-20260830-01011-S1\",\n        \"amount\": 12.99,\n        \"formattedAmount\": \"+ $12.99\",\n        \"paymentMethod\": \"ONLINE\",\n        \"paymentStatus\": \"PAID\",\n        \"paymentLabel\": \"Online Paid\",\n        \"status\": \"COMPLETED\",\n        \"monthGroup\": \"August 2026\",\n        \"createdAt\": \"2026-08-30T13:00:00.000Z\"\n      },\n      {\n        \"id\": \"68f230aa771c9900eeaa1236\",\n        \"orderNumber\": \"#ORD-20260830-01010-S1\",\n        \"rawOrderNumber\": \"ORD-20260830-01010-S1\",\n        \"amount\": 45.5,\n        \"formattedAmount\": \"+ $45.50\",\n        \"paymentMethod\": \"ONLINE\",\n        \"paymentStatus\": \"PAID\",\n        \"paymentLabel\": \"Online Paid\",\n        \"status\": \"COMPLETED\",\n        \"monthGroup\": \"August 2026\",\n        \"createdAt\": \"2026-08-30T12:30:00.000Z\"\n      },\n      {\n        \"id\": \"68f230aa771c9900eeaa1237\",\n        \"orderNumber\": \"#ORD-20260829-01009-S1\",\n        \"rawOrderNumber\": \"ORD-20260829-01009-S1\",\n        \"amount\": 23.5,\n        \"formattedAmount\": \"+ $23.50\",\n        \"paymentMethod\": \"CASH_ON_DELIVERY\",\n        \"paymentStatus\": \"PAID\",\n        \"paymentLabel\": \"Cash on Delivery\",\n        \"status\": \"COMPLETED\",\n        \"monthGroup\": \"August 2026\",\n        \"createdAt\": \"2026-08-29T19:30:00.000Z\"\n      }\n    ],\n    \"groupedByMonth\": {\n      \"August 2026\": [\n        {\n          \"id\": \"68f230aa771c9900eeaa1235\",\n          \"orderNumber\": \"#ORD-20260830-01011-S1\",\n          \"amount\": 12.99,\n          \"formattedAmount\": \"+ $12.99\",\n          \"paymentLabel\": \"Online Paid\",\n          \"createdAt\": \"2026-08-30T13:00:00.000Z\"\n        }\n      ]\n    }\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -359,6 +473,121 @@
                 }
               ],
               "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Current user retrieved successfully\",\n  \"data\": {\n    \"id\": \"68f1c841bb2a0011eeaa8888\",\n    \"name\": \"Rafiul Islam\",\n    \"email\": \"rafi@email.com\",\n    \"role\": \"BUYER\",\n    \"profilePicture\": \"https://i.ibb.co.com/q2gwGfV/profile.jpg\",\n    \"stats\": {\n      \"recipesSaved\": 3,\n      \"mealsCooked\": 47,\n      \"groceryLists\": 12\n    },\n    \"recipesSaved\": 3,\n    \"mealsCooked\": 47,\n    \"groceryLists\": 12\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "4. Toggle Favorite Seller (Add / Remove)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sellerId\": \"68f1c841bb2a0011eeaa9910\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookmarks/sellers/toggle",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookmarks", "sellers", "toggle"]
+            },
+            "description": "Adds or removes a seller from the buyer's favorites. Accepts either the Seller's User.id or SellerProfile.id as 'sellerId'. Also available at POST /seller/favorites/toggle."
+          },
+          "response": [
+            {
+              "name": "200 - Seller Added to Favorites",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Seller added to favorites successfully\",\n  \"data\": {\n    \"isFavorite\": true,\n    \"sellerProfileId\": \"68f1c841bb2a0011eeaa9911\",\n    \"sellerUserId\": \"68f1c841bb2a0011eeaa9910\",\n    \"message\": \"Seller added to favorites successfully\"\n  }\n}"
+            },
+            {
+              "name": "200 - Seller Removed from Favorites",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Seller removed from favorites successfully\",\n  \"data\": {\n    \"isFavorite\": false,\n    \"sellerProfileId\": \"68f1c841bb2a0011eeaa9911\",\n    \"sellerUserId\": \"68f1c841bb2a0011eeaa9910\",\n    \"message\": \"Seller removed from favorites successfully\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "5. Get My Favorite Sellers List",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookmarks/sellers?latitude=23.7509&longitude=90.3843",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookmarks", "sellers"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "23.7509",
+                  "description": "Optional: Buyer latitude to calculate distanceKm"
+                },
+                {
+                  "key": "longitude",
+                  "value": "90.3843",
+                  "description": "Optional: Buyer longitude to calculate distanceKm"
+                }
+              ]
+            },
+            "description": "Retrieves all favorite sellers saved by the buyer, including cover image, open/closed status, rating, review count, pickup/delivery tags, distance, and featured dish snippet. Also available at GET /seller/favorites."
+          },
+          "response": [
+            {
+              "name": "200 - Favorite Sellers List",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Favorite sellers retrieved successfully\",\n  \"data\": {\n    \"totalSaved\": 2,\n    \"savedLabel\": \"2 saved\",\n    \"sellers\": [\n      {\n        \"id\": \"68f1c841bb2a0011eeaa9911\",\n        \"sellerId\": \"68f1c841bb2a0011eeaa9910\",\n        \"userId\": \"68f1c841bb2a0011eeaa9910\",\n        \"businessName\": \"Maria's Kitchen\",\n        \"ownerName\": \"Maria Santos\",\n        \"profilePicture\": \"https://i.ibb.co.com/q2gwGfV/profile.jpg\",\n        \"coverImage\": \"https://res.cloudinary.com/demo/image/upload/mezze.jpg\",\n        \"cuisineTypes\": [\"MEDITERRANEAN\"],\n        \"description\": \"Authentic Mediterranean homemade delicacies\",\n        \"featuredDishSnippet\": \"\\\"Classic Mezze Platter\\\" — Hummus, baba ganoush, tabbouleh, olives, and fresh pita for 2. A taste of the Mediterranean coast.\",\n        \"preparationTime\": \"20 min\",\n        \"deliveryFee\": 2,\n        \"address\": \"123 Market St\",\n        \"distanceKm\": 0.4,\n        \"distanceLabel\": \"0.4 km\",\n        \"averageRating\": 4.9,\n        \"reviewCount\": 412,\n        \"pickupAvailable\": true,\n        \"deliveryAvailable\": true,\n        \"isOpen\": true,\n        \"isFavorite\": true,\n        \"favoritedAt\": \"2026-10-28T04:20:00.000Z\"\n      }\n    ]\n  }\n}"
             }
           ]
         }

@@ -32,6 +32,11 @@ model User {
   isSeller           Boolean         @default(false)
   dietaryPreferences String[]
   allergies          String[]
+  profileVersion     Int             @default(1)
+  preferredCuisines  String[]
+  nutritionGoal      String?
+  householdSize      Int             @default(1)
+  cookingFrequency   String?
   language           String?
   country            String?
   timeZone           String?
@@ -46,6 +51,8 @@ model User {
   foods              Food[]
   orders             Order[]
   bookmarks          Bookmark[]
+  favoriteSellers    FavoriteSeller[]    @relation("UserFavoriteSellers")
+  mealPlans          MealPlan[]
   reviews            Review[]
 
   // Collaborative Grocery Relations

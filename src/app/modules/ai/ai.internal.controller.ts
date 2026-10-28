@@ -8,6 +8,7 @@ import { prisma } from "../../prisma/prisma";
 import catchAsync from "../../utils/catchAsync";
 import {
   mapFoodToFoodItem,
+  mapMealPlanToStoredMealPlan,
   mapRecipeToRecipe,
   mapSellerFoodToSellerFoodDraft,
   mapUserToUserAIProfile,
@@ -22,19 +23,33 @@ const parseSingleString = (val: any): string => {
 
 const findUserByIdOrUuid = async (userIdOrUuid: string) => {
   if (!userIdOrUuid) return null;
-  if (userIdOrUuid.length === 24) {
-    const directUser = await prisma.user.findUnique({ where: { id: userIdOrUuid } });
+  if (/^[0-9a-fA-F]{24}$/.test(userIdOrUuid)) {
+    const directUser = await prisma.user.findUnique({
+      where: { id: userIdOrUuid },
+      include: {
+        favoriteSellers: {
+          include: { seller: { select: { id: true, userId: true } } },
+        },
+      },
+    });
     if (directUser) return directUser;
   }
   const userIds = await prisma.user.findMany({ select: { id: true } });
   const matched = userIds.find((u) => u.id === userIdOrUuid || objectIdToUuid(u.id) === userIdOrUuid);
   if (!matched) return null;
-  return prisma.user.findUnique({ where: { id: matched.id } });
+  return prisma.user.findUnique({
+    where: { id: matched.id },
+    include: {
+      favoriteSellers: {
+        include: { seller: { select: { id: true, userId: true } } },
+      },
+    },
+  });
 };
 
 const findFoodByIdOrUuid = async (foodIdOrUuid: string) => {
   if (!foodIdOrUuid) return null;
-  if (foodIdOrUuid.length === 24) {
+  if (/^[0-9a-fA-F]{24}$/.test(foodIdOrUuid)) {
     const food = await prisma.food.findUnique({ where: { id: foodIdOrUuid } });
     if (food) return food;
   }
@@ -42,6 +57,31 @@ const findFoodByIdOrUuid = async (foodIdOrUuid: string) => {
   const matched = foodIds.find((f) => f.id === foodIdOrUuid || objectIdToUuid(f.id) === foodIdOrUuid);
   if (!matched) return null;
   return prisma.food.findUnique({ where: { id: matched.id } });
+};
+
+const findMealPlanByIdOrPlanId = async (planIdOrMongoId: string) => {
+  if (!planIdOrMongoId) return null;
+  const byPlanId = await prisma.mealPlan.findUnique({
+    where: { planId: planIdOrMongoId },
+  });
+  if (byPlanId) return byPlanId;
+
+  if (/^[0-9a-fA-F]{24}$/.test(planIdOrMongoId)) {
+    const byId = await prisma.mealPlan.findUnique({
+      where: { id: planIdOrMongoId },
+    });
+    if (byId) return byId;
+  }
+
+  const allPlans = await prisma.mealPlan.findMany({ select: { id: true, planId: true } });
+  const matched = allPlans.find(
+    (p) =>
+      p.id === planIdOrMongoId ||
+      p.planId === planIdOrMongoId ||
+      objectIdToUuid(p.id) === planIdOrMongoId,
+  );
+  if (!matched) return null;
+  return prisma.mealPlan.findUnique({ where: { id: matched.id } });
 };
 
 
@@ -79,9 +119,15 @@ const invalidateProfileCache = catchAsync(async (req: Request, res: Response) =>
 
 const getFoodCandidates = catchAsync(async (req: Request, res: Response) => {
   const limit = parseInt(parseSingleString(req.query.limit)) || 50;
+  const mealType = req.query.meal_type ? parseSingleString(req.query.meal_type).toUpperCase() : undefined;
+
+  const whereClause: any = { status: FoodStatus.PUBLISHED };
+  if (mealType && ["BREAKFAST", "LUNCH", "DINNER", "SNACKS"].includes(mealType)) {
+    whereClause.category = mealType;
+  }
 
   const foods = await prisma.food.findMany({
-    where: { status: FoodStatus.PUBLISHED },
+    where: whereClause,
     take: limit,
   });
 
@@ -92,9 +138,15 @@ const getFoodCandidates = catchAsync(async (req: Request, res: Response) => {
 
 const getRecipeCandidates = catchAsync(async (req: Request, res: Response) => {
   const limit = parseInt(parseSingleString(req.query.limit)) || 50;
+  const mealType = req.query.meal_type ? parseSingleString(req.query.meal_type).toUpperCase() : undefined;
+
+  const whereClause: any = { status: FoodStatus.PUBLISHED };
+  if (mealType && ["BREAKFAST", "LUNCH", "DINNER", "SNACKS"].includes(mealType)) {
+    whereClause.category = mealType;
+  }
 
   const foods = await prisma.food.findMany({
-    where: { status: FoodStatus.PUBLISHED },
+    where: whereClause,
     take: limit,
   });
 
@@ -142,8 +194,21 @@ const getMealPlanById = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(httpStatus.NOT_FOUND, `User not found for ID: ${userIdParam}`);
   }
 
-  // TODO: Implement meal plan lookup once MealPlan model is defined in Prisma schema
-  throw new ApiError(httpStatus.NOT_FOUND, `Meal plan not found for ID: ${planId}`);
+  const mealPlan = await findMealPlanByIdOrPlanId(planId);
+
+  if (!mealPlan) {
+    throw new ApiError(httpStatus.NOT_FOUND, `Meal plan not found for ID: ${planId}`);
+  }
+
+  if (
+    mealPlan.userId !== user.id &&
+    objectIdToUuid(mealPlan.userId) !== objectIdToUuid(user.id)
+  ) {
+    throw new ApiError(httpStatus.FORBIDDEN, "Access forbidden: meal plan does not belong to user");
+  }
+
+  const storedPlan = mapMealPlanToStoredMealPlan(mealPlan);
+  res.status(httpStatus.OK).json({ data: storedPlan });
 });
 
 

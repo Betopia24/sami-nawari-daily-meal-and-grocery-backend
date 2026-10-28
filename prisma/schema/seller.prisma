@@ -40,8 +40,21 @@ model SellerProfile {
   stripeChargesEnabled      Boolean             @default(false)
   stripePayoutsEnabled      Boolean             @default(false)
   stripeOnboardingCompleted Boolean             @default(false)
+  favoritedBy               FavoriteSeller[]
   createdAt                 DateTime            @default(now())
   updatedAt                 DateTime            @updatedAt
 
   @@map("seller_profiles")
+}
+
+model FavoriteSeller {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String        @db.ObjectId
+  user            User          @relation("UserFavoriteSellers", fields: [userId], references: [id], onDelete: Cascade)
+  sellerProfileId String        @db.ObjectId
+  sellerProfile   SellerProfile @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+
+  @@unique([userId, sellerProfileId])
+  @@map("favorite_sellers")
 }
