@@ -28,7 +28,7 @@ const findUserByIdOrUuid = async (userIdOrUuid: string) => {
       where: { id: userIdOrUuid },
       include: {
         favoriteSellers: {
-          include: { seller: { select: { id: true, userId: true } } },
+          include: { sellerProfile: { select: { id: true, userId: true } } },
         },
       },
     });
@@ -41,7 +41,7 @@ const findUserByIdOrUuid = async (userIdOrUuid: string) => {
     where: { id: matched.id },
     include: {
       favoriteSellers: {
-        include: { seller: { select: { id: true, userId: true } } },
+        include: { sellerProfile: { select: { id: true, userId: true } } },
       },
     },
   });
