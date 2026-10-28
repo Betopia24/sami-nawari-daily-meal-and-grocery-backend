@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NotificationType, SellerRequestStatus, UserRole, OrderStatus } from "@prisma/client";
+import { NotificationType, SellerRequestStatus, UserRole, OrderStatus, PaymentMethod } from "@prisma/client";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import { NotificationService } from "../notification/notification.service";
@@ -743,6 +743,311 @@ const createStripeDashboardLink = async (userId: string) => {
   };
 };
 
+const getPeriodDateRange = (period?: string, year?: number, month?: number) => {
+  const now = new Date();
+  let startDate: Date;
+  let endDate: Date;
+  let prevStartDate: Date;
+  let prevEndDate: Date;
+
+  if (year && month) {
+    startDate = new Date(year, month - 1, 1);
+    endDate = new Date(year, month, 0, 23, 59, 59, 999);
+    prevStartDate = new Date(year, month - 2, 1);
+    prevEndDate = new Date(year, month - 1, 0, 23, 59, 59, 999);
+  } else if (period === "last_month") {
+    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    prevStartDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    prevEndDate = new Date(now.getFullYear(), now.getMonth() - 1, 0, 23, 59, 59, 999);
+  } else if (period === "this_year") {
+    startDate = new Date(now.getFullYear(), 0, 1);
+    endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+    prevStartDate = new Date(now.getFullYear() - 1, 0, 1);
+    prevEndDate = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
+  } else {
+    // Default: this_month
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    prevStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    prevEndDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+  }
+
+  return { startDate, endDate, prevStartDate, prevEndDate };
+};
+
+const getSellerEarningsOverview = async (userId: string, query: Record<string, any>) => {
+  const seller = await prisma.sellerProfile.findUnique({
+    where: { userId },
+  });
+
+  if (!seller) {
+    throw new ApiError(404, "Seller profile not found");
+  }
+
+  const period = (query.period as string) || "this_month";
+  const year = query.year ? Number(query.year) : undefined;
+  const month = query.month ? Number(query.month) : undefined;
+
+  const { startDate, endDate, prevStartDate, prevEndDate } = getPeriodDateRange(period, year, month);
+
+  const baseSellerWhere = {
+    parentId: { not: null },
+    items: {
+      some: {
+        sellerId: userId,
+      },
+    },
+  };
+
+  const completedStatuses = [OrderStatus.COMPLETED, OrderStatus.DELIVERED];
+  const pendingStatuses = [
+    OrderStatus.CONFIRMED,
+    OrderStatus.ACCEPTED,
+    OrderStatus.PREPARING,
+    OrderStatus.OUT_FOR_DELIVERY,
+    OrderStatus.PENDING_PAYMENT,
+  ];
+
+  const [currentPeriodOrders, prevPeriodOrders, currentPendingOrders] = await Promise.all([
+    prisma.order.findMany({
+      where: {
+        ...baseSellerWhere,
+        status: { in: completedStatuses },
+        ...(period === "all" ? {} : { createdAt: { gte: startDate, lte: endDate } }),
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.order.findMany({
+      where: {
+        ...baseSellerWhere,
+        status: { in: completedStatuses },
+        createdAt: { gte: prevStartDate, lte: prevEndDate },
+      },
+    }),
+    prisma.order.findMany({
+      where: {
+        ...baseSellerWhere,
+        status: { in: pendingStatuses },
+      },
+    }),
+  ]);
+
+  const calcOrderSellerTotal = (order: any) => {
+    const sellerItems = order.items.filter((i: any) => i.sellerId === userId);
+    const itemsTotal = sellerItems.reduce((sum: number, item: any) => sum + item.subtotal, 0);
+    return Number((itemsTotal + (order.deliveryFee || 0)).toFixed(2));
+  };
+
+  const totalEarnings = Number(
+    currentPeriodOrders.reduce((acc, order) => acc + calcOrderSellerTotal(order), 0).toFixed(2)
+  );
+  const prevTotalEarnings = Number(
+    prevPeriodOrders.reduce((acc, order) => acc + calcOrderSellerTotal(order), 0).toFixed(2)
+  );
+
+  let earningsGrowthPercentage = 0;
+  if (prevTotalEarnings > 0) {
+    earningsGrowthPercentage = Number(
+      (((totalEarnings - prevTotalEarnings) / prevTotalEarnings) * 100).toFixed(1)
+    );
+  } else if (totalEarnings > 0) {
+    earningsGrowthPercentage = 100;
+  }
+
+  const completedOrdersCount = currentPeriodOrders.length;
+  const prevCompletedOrdersCount = prevPeriodOrders.length;
+  let ordersGrowthPercentage = 0;
+  if (prevCompletedOrdersCount > 0) {
+    ordersGrowthPercentage = Number(
+      (((completedOrdersCount - prevCompletedOrdersCount) / prevCompletedOrdersCount) * 100).toFixed(1)
+    );
+  } else if (completedOrdersCount > 0) {
+    ordersGrowthPercentage = 100;
+  }
+
+  const pendingOrdersCount = currentPendingOrders.length;
+  const pendingEarnings = Number(
+    currentPendingOrders.reduce((acc, order) => acc + calcOrderSellerTotal(order), 0).toFixed(2)
+  );
+
+  // Build chart data points across the period
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const chartData: { label: string; date: string; earnings: number; cumulativeEarnings: number }[] = [];
+
+  const targetMonth = startDate.getMonth();
+  const targetYear = startDate.getFullYear();
+  const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+  const intervals = [1, 5, 10, 15, 20, 25, daysInMonth];
+  const uniqueDays = [...new Set(intervals)];
+
+  let runningCumulative = 0;
+  let prevDay = 0;
+
+  for (const day of uniqueDays) {
+    const dayStart = new Date(targetYear, targetMonth, prevDay + 1, 0, 0, 0, 0);
+    const dayEnd = new Date(targetYear, targetMonth, day, 23, 59, 59, 999);
+
+    const bucketEarnings = currentPeriodOrders
+      .filter((o) => o.createdAt >= dayStart && o.createdAt <= dayEnd)
+      .reduce((acc, o) => acc + calcOrderSellerTotal(o), 0);
+
+    runningCumulative = Number((runningCumulative + bucketEarnings).toFixed(2));
+
+    chartData.push({
+      label: `${monthNames[targetMonth]} ${day}`,
+      date: dayEnd.toISOString().split("T")[0],
+      earnings: Number(bucketEarnings.toFixed(2)),
+      cumulativeEarnings: runningCumulative,
+    });
+
+    prevDay = day;
+  }
+
+  // Retrieve live Stripe available balance if seller has a connected Stripe account
+  let availableBalance = totalEarnings;
+  let stripePendingBalance = pendingEarnings;
+
+  if (seller.stripeAccountId) {
+    try {
+      const balance = await stripe.balance.retrieve({
+        stripeAccount: seller.stripeAccountId,
+      });
+      const avail = balance.available.reduce((acc, b) => acc + b.amount, 0) / 100;
+      const pend = balance.pending.reduce((acc, b) => acc + b.amount, 0) / 100;
+      availableBalance = Number(avail.toFixed(2));
+      stripePendingBalance = Number(pend.toFixed(2));
+    } catch {
+      // Fallback to calculated order totals if Stripe balance retrieval fails
+    }
+  }
+
+  return {
+    period,
+    totalEarnings,
+    earningsGrowthPercentage,
+    completedOrders: {
+      count: completedOrdersCount,
+      growthPercentage: ordersGrowthPercentage,
+    },
+    pendingEarnings: {
+      amount: pendingEarnings,
+      ordersCount: pendingOrdersCount,
+      stripePendingBalance,
+    },
+    availableBalance: {
+      amount: availableBalance,
+      readyForWithdraw: availableBalance > 0 && seller.stripePayoutsEnabled,
+    },
+    chartData,
+  };
+};
+
+const getSellerEarningsHistory = async (userId: string, query: Record<string, any>) => {
+  const seller = await prisma.sellerProfile.findUnique({
+    where: { userId },
+  });
+
+  if (!seller) {
+    throw new ApiError(404, "Seller profile not found");
+  }
+
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 20;
+  const skip = (page - 1) * limit;
+  const period = (query.period as string) || "this_month";
+  const year = query.year ? Number(query.year) : undefined;
+  const month = query.month ? Number(query.month) : undefined;
+
+  const { startDate, endDate } = getPeriodDateRange(period, year, month);
+
+  const whereCondition: any = {
+    parentId: { not: null },
+    items: {
+      some: {
+        sellerId: userId,
+      },
+    },
+    status: {
+      in: [OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+    },
+  };
+
+  if (period !== "all") {
+    whereCondition.createdAt = {
+      gte: startDate,
+      lte: endDate,
+    };
+  }
+
+  if (query.paymentMethod) {
+    whereCondition.paymentMethod = query.paymentMethod as PaymentMethod;
+  }
+
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      where: whereCondition,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.order.count({ where: whereCondition }),
+  ]);
+
+  const monthNamesFull = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const transactions = orders.map((order) => {
+    const sellerItems = order.items.filter((i) => i.sellerId === userId);
+    const itemsTotal = sellerItems.reduce((sum, item) => sum + item.subtotal, 0);
+    const amount = Number((itemsTotal + (order.deliveryFee || 0)).toFixed(2));
+
+    let paymentLabel = "Cash on Delivery";
+    if (order.paymentMethod === PaymentMethod.ONLINE) {
+      paymentLabel = "Online Paid";
+    }
+
+    const d = new Date(order.createdAt);
+    const monthGroup = `${monthNamesFull[d.getMonth()]} ${d.getFullYear()}`;
+
+    return {
+      id: order.id,
+      orderNumber: `#${order.orderNumber}`,
+      rawOrderNumber: order.orderNumber,
+      amount,
+      formattedAmount: `+ $${amount.toFixed(2)}`,
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      paymentLabel,
+      status: order.status,
+      monthGroup,
+      createdAt: order.createdAt,
+    };
+  });
+
+  // Group by monthGroup for easy UI rendering (e.g. "August 2026")
+  const groupedByMonth: Record<string, typeof transactions> = {};
+  for (const tx of transactions) {
+    if (!groupedByMonth[tx.monthGroup]) {
+      groupedByMonth[tx.monthGroup] = [];
+    }
+    groupedByMonth[tx.monthGroup].push(tx);
+  }
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+    },
+    transactions,
+    groupedByMonth,
+  };
+};
+
 export const SellerService = {
   submitSellerRequest,
   getMySellerProfile,
@@ -755,4 +1060,6 @@ export const SellerService = {
   createStripeConnectAccount,
   getStripeAccountStatus,
   createStripeDashboardLink,
+  getSellerEarningsOverview,
+  getSellerEarningsHistory,
 };

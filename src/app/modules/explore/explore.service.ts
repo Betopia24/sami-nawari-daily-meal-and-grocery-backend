@@ -155,10 +155,16 @@ const getSellerMenu = async (
 
 
 const getSellerAbout = async (
-  sellerId: string
+  sellerId: string,
+  buyerUserId?: string
 ) => {
-  const profile = await prisma.sellerProfile.findUnique({
-    where: { userId: sellerId },
+  const profile = await prisma.sellerProfile.findFirst({
+    where: {
+      OR: [
+        { userId: sellerId },
+        { id: sellerId },
+      ],
+    },
     include: {
       user: {
         select: {
@@ -174,7 +180,23 @@ const getSellerAbout = async (
     throw new ApiError(404, "Seller profile not found");
   }
 
-  return profile;
+  let isFavorite = false;
+  if (buyerUserId) {
+    const fav = await prisma.favoriteSeller.findUnique({
+      where: {
+        userId_sellerProfileId: {
+          userId: buyerUserId,
+          sellerProfileId: profile.id,
+        },
+      },
+    });
+    isFavorite = !!fav;
+  }
+
+  return {
+    ...profile,
+    isFavorite,
+  };
 };
 
 const getSellerReviews = async (sellerId: string, page: number = 1, limit: number = 10) => {

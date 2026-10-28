@@ -62,3 +62,18 @@ model Bookmark {
   @@unique([userId, foodId])
   @@map("bookmarks")
 }
+
+model MealPlan {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  planId       String   @unique
+  userId       String   @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  version      Int      @default(1)
+  startDate    String?
+  days         Json
+  rawResponse  Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("meal_plans")
+}

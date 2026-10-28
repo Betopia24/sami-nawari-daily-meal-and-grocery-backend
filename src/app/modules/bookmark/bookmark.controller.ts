@@ -31,7 +31,36 @@ const getMyBookmarks = catchAsync(async (req: Request & { user?: any }, res: Res
   });
 });
 
+const toggleFavoriteSeller = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+  const sellerId = req.body.sellerId || req.body.sellerProfileId || req.params.sellerId;
+  const decodedUser = req.user;
+
+  const result = await BookmarkService.toggleFavoriteSeller(decodedUser.userId, sellerId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: result.message,
+    data: result,
+  });
+});
+
+const getMyFavoriteSellers = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+  const decodedUser = req.user;
+
+  const result = await BookmarkService.getMyFavoriteSellers(decodedUser.userId, req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Favorite sellers retrieved successfully",
+    data: result,
+  });
+});
+
 export const BookmarkController = {
   toggleBookmark,
   getMyBookmarks,
+  toggleFavoriteSeller,
+  getMyFavoriteSellers,
 };
