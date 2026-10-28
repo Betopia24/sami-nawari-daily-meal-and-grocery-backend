@@ -644,6 +644,407 @@
           ]
         }
       ]
+    },
+    {
+      "name": "4. AI Public Endpoints (Mobile / Web Client -> Main Backend)",
+      "item": [
+        {
+          "name": "1. Personalized Food Recommendations",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{buyer_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"limit\": 20,\n  \"meal_type\": \"lunch\",\n  \"delivery_zone_id\": \"zone-1\",\n  \"exclude_food_ids\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/recommendations/foods",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "recommendations", "foods"]
+            },
+            "description": "Proxies to AI Server POST /internal/v1/recommendations/foods with authenticated X-User-ID."
+          }
+        },
+        {
+          "name": "2. Personalized Recipe Recommendations",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{buyer_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"limit\": 20,\n  \"meal_type\": \"dinner\",\n  \"max_cooking_time_minutes\": 60,\n  \"exclude_recipe_ids\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/recommendations/recipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "recommendations", "recipes"]
+            },
+            "description": "Proxies to AI Server POST /internal/v1/recommendations/recipes."
+          }
+        },
+        {
+          "name": "3. Generate AI Meal Plan (Saves to DB)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{buyer_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "mealplan-gen-2026-10-28-001" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_date\": \"2026-10-28\",\n  \"days\": 7,\n  \"meals_per_day\": [\"breakfast\", \"lunch\", \"dinner\"],\n  \"goal_override\": null,\n  \"excluded_recipe_ids\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/meal-plans/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "meal-plans", "generate"]
+            },
+            "description": "Calls AI Server POST /internal/v1/meal-plans/generate and persists the generated meal plan in MongoDB (meal_plans collection) so subsequent insights/replacements/grocery calls work."
+          }
+        },
+        {
+          "name": "4. Meal Item Replacement Options",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{buyer_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preference\": \"higher protein\",\n  \"limit\": 3\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/meal-plans/:planId/items/:itemId/replacement-options",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "meal-plans", ":planId", "items", ":itemId", "replacement-options"],
+              "variable": [
+                { "key": "planId", "value": "plan-123" },
+                { "key": "itemId", "value": "recipe-123" }
+              ]
+            },
+            "description": "Proxies to AI Server POST /internal/v1/meal-plans/{plan_id}/items/{item_id}/replacement-options."
+          }
+        },
+        {
+          "name": "5. Generate Meal Plan Nutrition Insights",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{buyer_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "insight-gen-001" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/meal-plans/:planId/insights",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "meal-plans", ":planId", "insights"],
+              "variable": [{ "key": "planId", "value": "plan-123" }]
+            }
+          }
+        },
+        {
+          "name": "6. Get Latest Meal Plan Nutrition Insights",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{buyer_token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ai/meal-plans/:planId/insights/latest",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "meal-plans", ":planId", "insights", "latest"],
+              "variable": [{ "key": "planId", "value": "plan-123" }]
+            }
+          }
+        },
+        {
+          "name": "7. Grocery Draft from Meal Plan",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{buyer_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meal_plan_id\": \"plan-123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/grocery-drafts/from-meal-plan",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "grocery-drafts", "from-meal-plan"]
+            }
+          }
+        },
+        {
+          "name": "8. Grocery Draft from Recipe",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{buyer_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipe_id\": \"recipe-123\",\n  \"servings\": 4\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/grocery-drafts/from-recipe",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "grocery-drafts", "from-recipe"]
+            }
+          }
+        },
+        {
+          "name": "9. Compatibility Check (Single Item)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{buyer_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resource_type\": \"recipe\",\n  \"resource_id\": \"recipe-123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/compatibility/check",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "compatibility", "check"]
+            }
+          }
+        },
+        {
+          "name": "10. Compatibility Check (Batch)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{buyer_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"resource_type\": \"food\", \"resource_id\": \"food-123\" },\n    { \"resource_type\": \"recipe\", \"resource_id\": \"recipe-123\" }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/compatibility/check-batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "compatibility", "check-batch"]
+            }
+          }
+        },
+        {
+          "name": "11. Seller Recipe Draft Generate",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{seller_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "seller-recipe-gen-001" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"language\": \"en\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/seller-foods/:foodId/recipe-drafts/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "seller-foods", ":foodId", "recipe-drafts", "generate"],
+              "variable": [{ "key": "foodId", "value": "68f1c841bb2a0011eeaa9922" }]
+            }
+          }
+        },
+        {
+          "name": "12. Seller Recipe Draft Regenerate",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{seller_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"previous_generation_id\": \"gen_recipe_abc123\",\n  \"instructions\": \"Make it less spicy and shorter.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/seller-foods/:foodId/recipe-drafts/regenerate",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "seller-foods", ":foodId", "recipe-drafts", "regenerate"],
+              "variable": [{ "key": "foodId", "value": "68f1c841bb2a0011eeaa9922" }]
+            }
+          }
+        },
+        {
+          "name": "13. Track Recommendation Event (204 No Content)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{buyer_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recommendation_id\": \"rec_abc123\",\n  \"item_type\": \"food\",\n  \"item_id\": \"food-123\",\n  \"event\": \"clicked\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/recommendation-events",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "recommendation-events"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. AI Internal Endpoints (AI Server -> Main Backend)",
+      "item": [
+        {
+          "name": "1. Get User AI Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{serverUrl}}/internal/ai/users/:userId/profile",
+              "host": ["{{serverUrl}}"],
+              "path": ["internal", "ai", "users", ":userId", "profile"],
+              "variable": [{ "key": "userId", "value": "68f1c841bb2a0011eeaa8888" }]
+            },
+            "description": "Called by AI Server to fetch UserAIProfile (supports both MongoDB ObjectId and UUID v5). No service token required in simplified private-network setup."
+          }
+        },
+        {
+          "name": "2. Get Food Candidates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{serverUrl}}/internal/ai/foods/candidates?user_id=11111111-1111-1111-1111-111111111111&limit=200&meal_type=lunch",
+              "host": ["{{serverUrl}}"],
+              "path": ["internal", "ai", "foods", "candidates"],
+              "query": [
+                { "key": "user_id", "value": "11111111-1111-1111-1111-111111111111" },
+                { "key": "limit", "value": "200" },
+                { "key": "meal_type", "value": "lunch" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Get Recipe Candidates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{serverUrl}}/internal/ai/recipes/candidates?user_id=11111111-1111-1111-1111-111111111111&limit=200&meal_type=dinner",
+              "host": ["{{serverUrl}}"],
+              "path": ["internal", "ai", "recipes", "candidates"],
+              "query": [
+                { "key": "user_id", "value": "11111111-1111-1111-1111-111111111111" },
+                { "key": "limit", "value": "200" },
+                { "key": "meal_type", "value": "dinner" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Get Single Food by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{serverUrl}}/internal/ai/foods/:foodId",
+              "host": ["{{serverUrl}}"],
+              "path": ["internal", "ai", "foods", ":foodId"],
+              "variable": [{ "key": "foodId", "value": "68f1c841bb2a0011eeaa9922" }]
+            }
+          }
+        },
+        {
+          "name": "5. Get Single Recipe by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{serverUrl}}/internal/ai/recipes/:recipeId",
+              "host": ["{{serverUrl}}"],
+              "path": ["internal", "ai", "recipes", ":recipeId"],
+              "variable": [{ "key": "recipeId", "value": "68f1c841bb2a0011eeaa9922" }]
+            }
+          }
+        },
+        {
+          "name": "6. Get Meal Plan by ID (with Ownership Check)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{serverUrl}}/internal/ai/meal-plans/:planId?user_id=68f1c841bb2a0011eeaa8888",
+              "host": ["{{serverUrl}}"],
+              "path": ["internal", "ai", "meal-plans", ":planId"],
+              "query": [{ "key": "user_id", "value": "68f1c841bb2a0011eeaa8888" }],
+              "variable": [{ "key": "planId", "value": "plan-123" }]
+            }
+          }
+        },
+        {
+          "name": "7. Get Seller Food Draft (with Ownership Check)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{serverUrl}}/internal/ai/seller-foods/:foodId/draft?seller_user_id=68f1c841bb2a0011eeaa9910",
+              "host": ["{{serverUrl}}"],
+              "path": ["internal", "ai", "seller-foods", ":foodId", "draft"],
+              "query": [{ "key": "seller_user_id", "value": "68f1c841bb2a0011eeaa9910" }],
+              "variable": [{ "key": "foodId", "value": "68f1c841bb2a0011eeaa9922" }]
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [
