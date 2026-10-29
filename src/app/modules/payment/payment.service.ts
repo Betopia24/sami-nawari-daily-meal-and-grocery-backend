@@ -1,12 +1,13 @@
 import Stripe from "stripe";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
+import { Request } from "express";
 import { prisma } from "../../prisma/prisma";
 import ApiError from "../../errors/apiError";
 import config from "../../config";
 import { stripe } from "../../utils/stripe";
 import emailSender from "../../utils/emailSender";
 
-const createCheckoutSession = async (userId: string, orderId: string) => {
+const createCheckoutSession = async (userId: string, orderId: string, req?: Request) => {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
@@ -63,6 +64,22 @@ const createCheckoutSession = async (userId: string, orderId: string) => {
   // Admin takes 0 fee (complete amount goes to seller)
   const sellerIds = [...new Set(order.items.map((item) => item.sellerId))];
 
+  // Resolve base URL for backend payment callback routes
+  let backendOrigin = config.backendUrl;
+  if (!backendOrigin && req) {
+    const protocol = req.protocol || "http";
+    const host = req.get("host");
+    if (host) {
+      backendOrigin = `${protocol}://${host}`;
+    }
+  }
+  if (!backendOrigin) {
+    backendOrigin = `http://localhost:${config.port || 5478}`;
+  }
+
+  const successUrl = `${backendOrigin}/api/v1/payments/success?session_id={CHECKOUT_SESSION_ID}`;
+  const cancelUrl = `${backendOrigin}/api/v1/payments/cancel`;
+
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     payment_method_types: ["card"],
     mode: "payment",
@@ -74,8 +91,8 @@ const createCheckoutSession = async (userId: string, orderId: string) => {
       isSingleSeller: sellerIds.length === 1 ? "true" : "false",
       sellerId: sellerIds[0] || "",
     },
-    success_url: `${config.stripe.frontendUrl || config.clientUrl || "http://localhost:3000"}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${config.stripe.frontendUrl || config.clientUrl || "http://localhost:3000"}/payment/cancel`,
+    success_url: successUrl,
+    cancel_url: cancelUrl,
   };
 
   if (sellerIds.length === 1) {
