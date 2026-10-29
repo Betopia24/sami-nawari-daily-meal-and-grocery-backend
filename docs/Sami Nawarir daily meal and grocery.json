@@ -2182,7 +2182,7 @@
                   "variable": [
                     {
                       "key": "baseUrl",
-                      "value": "http://localhost:5478/api/v1"
+                      "value": "http://206.162.244.134:5478/api/v1"
                     }
                   ]
                 },
@@ -2233,7 +2233,7 @@
                       "variable": [
                         {
                           "key": "baseUrl",
-                          "value": "http://localhost:5478/api/v1"
+                          "value": "http://206.162.244.134:5478/api/v1"
                         }
                       ]
                     },
@@ -13514,12 +13514,12 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:5478/api/v1",
+      "value": "http://206.162.244.134:5478/api/v1",
       "type": "string"
     },
     {
       "key": "serverUrl",
-      "value": "http://localhost:5478",
+      "value": "http://206.162.244.134:5478",
       "type": "string"
     },
     {

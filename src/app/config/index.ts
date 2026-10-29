@@ -38,6 +38,7 @@ export default {
     frontendUrl: process.env.FRONTEND_URL,
   },
 
+  backendUrl: process.env.BACKEND_URL,
   clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
 
   //  redirect url
