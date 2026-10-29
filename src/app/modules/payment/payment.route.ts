@@ -11,4 +11,7 @@ router.post(
   PaymentController.createCheckoutSession
 );
 
+router.get("/success", PaymentController.renderPaymentSuccess);
+router.get("/cancel", PaymentController.renderPaymentCancel);
+
 export const PaymentRoutes = router;

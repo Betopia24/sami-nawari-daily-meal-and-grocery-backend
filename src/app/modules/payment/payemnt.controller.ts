@@ -5,7 +5,7 @@ import config from "../../config";
 import { stripe } from "../../utils/stripe";
 import sendResponse from "../../utils/sendResponse";
 import { PaymentService } from "./payment.service";
-
+import { getPaymentCancelHtml, getPaymentSuccessHtml } from "../../utils/paymentTemplates";
 
 const handleStripeWebhooksEvent = catchAsync(async (req: Request, res: Response) => {
     const sig = req.headers["stripe-signature"] as string;
@@ -33,7 +33,7 @@ const createCheckoutSession = catchAsync(async (req: Request & { user?: any }, r
     const decodedUser = req.user as any;
     const { orderId } = req.body;
 
-    const result = await PaymentService.createCheckoutSession(decodedUser.userId, orderId);
+    const result = await PaymentService.createCheckoutSession(decodedUser.userId, orderId, req);
 
     sendResponse(res, {
         statusCode: 200,
@@ -43,7 +43,20 @@ const createCheckoutSession = catchAsync(async (req: Request & { user?: any }, r
     });
 });
 
+const renderPaymentSuccess = (req: Request, res: Response) => {
+    const sessionId = (req.query.session_id as string) || undefined;
+    res.setHeader("Content-Type", "text/html");
+    res.status(200).send(getPaymentSuccessHtml(sessionId));
+};
+
+const renderPaymentCancel = (_req: Request, res: Response) => {
+    res.setHeader("Content-Type", "text/html");
+    res.status(200).send(getPaymentCancelHtml());
+};
+
 export const PaymentController = {
     createCheckoutSession,
     handleStripeWebhooksEvent,
+    renderPaymentSuccess,
+    renderPaymentCancel,
 };
