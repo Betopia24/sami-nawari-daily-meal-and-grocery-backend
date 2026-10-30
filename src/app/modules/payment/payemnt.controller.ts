@@ -43,6 +43,20 @@ const createCheckoutSession = catchAsync(async (req: Request & { user?: any }, r
     });
 });
 
+const retryPayment = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+    const decodedUser = req.user as any;
+    const orderId = req.params.orderId || req.body.orderId;
+
+    const result = await PaymentService.createCheckoutSession(decodedUser.userId, orderId, req);
+
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Payment retry checkout session generated successfully",
+        data: result,
+    });
+});
+
 const renderPaymentSuccess = (req: Request, res: Response) => {
     const sessionId = (req.query.session_id as string) || undefined;
     res.setHeader("Content-Type", "text/html");
@@ -56,6 +70,7 @@ const renderPaymentCancel = (_req: Request, res: Response) => {
 
 export const PaymentController = {
     createCheckoutSession,
+    retryPayment,
     handleStripeWebhooksEvent,
     renderPaymentSuccess,
     renderPaymentCancel,
