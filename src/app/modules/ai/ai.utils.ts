@@ -133,23 +133,56 @@ export const mapRecipeToRecipe = (recipe: any): Recipe => {
 
 
 export const mapMealPlanToStoredMealPlan = (plan: any): StoredMealPlan => {
-  const userIdUuid = objectIdToUuid(plan.userId || plan.user_id || plan.user?.id);
-  const rawPlanId = plan.planId || plan.plan_id || plan.id || plan._id?.toString();
-  const rawDays = Array.isArray(plan.days) ? plan.days : [];
+  const rawResponse =
+    plan.rawResponse && typeof plan.rawResponse === "object" ? plan.rawResponse : {};
+  const userIdUuid = objectIdToUuid(
+    plan.userId || plan.user_id || plan.user?.id,
+  );
+  const rawPlanId =
+    plan.planId ||
+    plan.plan_id ||
+    rawResponse.plan_id ||
+    rawResponse.generation_id ||
+    plan.id ||
+    plan._id?.toString();
+
+  // Older rows were saved before the AI response wrapper was handled and have
+  // an empty `days` column. The complete response is still available in
+  // `rawResponse`, so use it as a fallback instead of returning an empty plan.
+  const storedDays = Array.isArray(plan.days) ? plan.days : [];
+  const rawDays =
+    storedDays.length > 0
+      ? storedDays
+      : Array.isArray(rawResponse.plan?.days)
+        ? rawResponse.plan.days
+        : Array.isArray(rawResponse.days)
+          ? rawResponse.days
+          : [];
+
   const days: MealPlanDay[] = rawDays.map((day: any) => ({
     date: day.date || new Date().toISOString().split("T")[0],
     meals: (day.meals || []).map((m: any, idx: number) => ({
       meal_item_id: m.meal_item_id || m.id || `mpi_${idx + 1}`,
       meal_type: (m.meal_type || m.mealType || "lunch").toLowerCase(),
       recipe_id: objectIdToUuid(m.recipe_id || m.recipeId || "r1"),
-      servings: typeof m.servings === "number" && m.servings > 0 ? m.servings : 2,
+      servings:
+        typeof m.servings === "number" && m.servings > 0 ? m.servings : 2,
     })),
   }));
+
+  const version =
+    typeof plan.version === "number"
+      ? plan.version
+      : typeof rawResponse.plan?.version === "number"
+        ? rawResponse.plan.version
+        : typeof rawResponse.version === "number"
+          ? rawResponse.version
+          : 1;
 
   return {
     plan_id: rawPlanId,
     user_id: userIdUuid,
-    version: plan.version || 1,
+    version,
     days,
   };
 };

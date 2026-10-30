@@ -33,18 +33,32 @@ Retrieve AI-personalized food recommendation candidates.
     "recommendation_id": "rec_6114ce2776714844b90a55a5991554c6",
     "items": [
       {
-        "item_id": "f1",
+        "item_id": "a1b7c3c2-a8e7-50c0-8467-d3297c702502",
+        "food_id": "6ae06891dc9af68b3aa4bf41",
         "score": 0.859,
         "compatibility": "safe",
         "reasons": [
           "matches_cuisine",
           "matches_goal"
-        ]
+        ],
+        "food": {
+          "id": "6ae06891dc9af68b3aa4bf41",
+          "name": "Mango",
+          "description": "Fresh mango",
+          "images": [],
+          "price": 120,
+          "category": "LUNCH",
+          "preparationTime": "15 min",
+          "deliveryFee": 0,
+          "ingredients": []
+        }
       }
     ]
   }
 }
 ```
+
+`item_id` is the AI recommendation ID. `food_id` is the MongoDB food ID, and `food` contains the resolved food record so the client can render the recommendation card directly.
 
 ---
 

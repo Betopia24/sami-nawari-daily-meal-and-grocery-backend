@@ -52,6 +52,35 @@ const generateMealPlan = catchAsync(async (req: Request & { user?: any }, res: R
 });
 
 
+const getMyMealPlans = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+  const userId = req.user.userId;
+
+  const result = await aiService.getMyMealPlans(userId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Meal plans retrieved successfully",
+    data: result,
+  });
+});
+
+
+const getMealPlan = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+  const userId = req.user.userId;
+  const planId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+  const result = await aiService.getMealPlan(userId, planId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Meal plan retrieved successfully",
+    data: result,
+  });
+});
+
+
 const getReplacementOptions = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const userId = req.user.userId;
   const planId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
@@ -183,6 +212,8 @@ export const AIPublicController = {
   getFoodRecommendations,
   getRecipeRecommendations,
   generateMealPlan,
+  getMyMealPlans,
+  getMealPlan,
   getReplacementOptions,
   generateNutritionInsights,
   getLatestNutritionInsights,
