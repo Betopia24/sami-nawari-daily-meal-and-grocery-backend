@@ -3,6 +3,7 @@ import { z } from "zod";
 
 const deliveryAddressSchema = z.object({
   streetAddress: z.string().min(1, "Street address is required"),
+  apt: z.string().optional(),
   city: z.string().min(1, "City is required"),
   state: z.string().optional(),
   postalCode: z.string().optional(),

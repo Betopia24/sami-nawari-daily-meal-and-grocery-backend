@@ -3,6 +3,7 @@ import { PaymentMethod } from "@prisma/client";
 
 export type TDeliveryAddress = {
   streetAddress: string;
+  apt?: string;
   city: string;
   state?: string;
   postalCode?: string;
