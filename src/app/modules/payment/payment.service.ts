@@ -8,17 +8,20 @@ import { stripe } from "../../utils/stripe";
 import emailSender from "../../utils/emailSender";
 
 const createCheckoutSession = async (userId: string, orderId: string, req?: Request) => {
+  // Performance optimization: select only required order and user fields
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: {
+    select: {
+      id: true,
+      userId: true,
+      items: true,
+      deliveryFee: true,
+      paymentStatus: true,
       user: {
         select: {
-          id: true,
           email: true,
-          name: true,
         },
       },
-      childOrders: true,
     },
   });
 
@@ -60,8 +63,6 @@ const createCheckoutSession = async (userId: string, orderId: string, req?: Requ
   }
 
   // Identify seller accounts
-  // For single seller orders: use destination charges (transfer_data.destination = sellerStripeAccountId)
-  // Admin takes 0 fee (complete amount goes to seller)
   const sellerIds = [...new Set(order.items.map((item) => item.sellerId))];
 
   // Resolve base URL for backend payment callback routes
@@ -98,6 +99,10 @@ const createCheckoutSession = async (userId: string, orderId: string, req?: Requ
   if (sellerIds.length === 1) {
     const sellerProfile = await prisma.sellerProfile.findUnique({
       where: { userId: sellerIds[0] },
+      select: {
+        stripeAccountId: true,
+        stripeChargesEnabled: true,
+      },
     });
 
     if (sellerProfile?.stripeAccountId && sellerProfile.stripeChargesEnabled) {
