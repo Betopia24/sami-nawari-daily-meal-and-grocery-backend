@@ -1,25 +1,87 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-inferrable-types */
-import { FoodCategory, FoodStatus, ReviewStatus, SellerRequestStatus } from "@prisma/client";
+import { CuisineType, FoodCategory, FoodStatus, ReviewStatus, SellerRequestStatus } from "@prisma/client";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import redis from "../../utils/redisClient";
 
+interface IGetNearbySellersParams {
+  searchTerm?: string;
+  cuisine?: CuisineType;
+  deliveryAvailable?: boolean;
+  pickupAvailable?: boolean;
+  latitude?: number;
+  longitude?: number;
+  radius: number;
+  page?: number;
+  limit?: number;
+}
 
-const getNearbySellers = async (
-  latitude: number | undefined,
-  longitude: number | undefined,
-  radius: number,
-  page: number = 1,
-  limit: number = 10
-) => {
+const getNearbySellers = async (params: IGetNearbySellersParams) => {
+  const {
+    searchTerm,
+    cuisine,
+    deliveryAvailable,
+    pickupAvailable,
+    latitude,
+    longitude,
+    radius,
+    page = 1,
+    limit = 10,
+  } = params;
+
+  // Build Prisma Where Clause for fallback / regular search
+  const whereClause: any = {
+    status: SellerRequestStatus.APPROVED,
+  };
+
+  if (deliveryAvailable !== undefined) {
+    whereClause.deliveryAvailable = deliveryAvailable;
+  }
+  if (pickupAvailable !== undefined) {
+    whereClause.pickupAvailable = pickupAvailable;
+  }
+  if (cuisine) {
+    whereClause.cuisineTypes = {
+      has: cuisine,
+    };
+  }
+
+  if (searchTerm && searchTerm.trim() !== "") {
+    const trimmed = searchTerm.trim();
+    whereClause.OR = [
+      { businessName: { contains: trimmed, mode: "insensitive" } },
+      { ownerName: { contains: trimmed, mode: "insensitive" } },
+      { description: { contains: trimmed, mode: "insensitive" } },
+      { address: { contains: trimmed, mode: "insensitive" } },
+      {
+        user: {
+          OR: [
+            { name: { contains: trimmed, mode: "insensitive" } },
+            // Search inside seller's published foods
+            {
+              foods: {
+                some: {
+                  name: { contains: trimmed, mode: "insensitive" },
+                  status: FoodStatus.PUBLISHED,
+                },
+              },
+            },
+          ],
+        },
+      },
+    ];
+  }
+
+  // If no coordinates provided, use Prisma search
   if (latitude === undefined || longitude === undefined) {
     const sellers = await prisma.sellerProfile.findMany({
-      where: { status: SellerRequestStatus.APPROVED },
+      where: whereClause,
       select: {
         id: true,
         userId: true,
         businessName: true,
+        ownerName: true,
         cuisineTypes: true,
         description: true,
         address: true,
@@ -45,7 +107,21 @@ const getNearbySellers = async (
     return sellers;
   }
 
-  const pipeline = [
+  // When coordinates are provided, use Mongo aggregation with geoNear + filters
+  const geoQuery: any = {
+    status: SellerRequestStatus.APPROVED,
+  };
+  if (deliveryAvailable !== undefined) {
+    geoQuery.deliveryAvailable = deliveryAvailable;
+  }
+  if (pickupAvailable !== undefined) {
+    geoQuery.pickupAvailable = pickupAvailable;
+  }
+  if (cuisine) {
+    geoQuery.cuisineTypes = cuisine;
+  }
+
+  const pipeline: any[] = [
     {
       $geoNear: {
         near: {
@@ -55,7 +131,7 @@ const getNearbySellers = async (
         distanceField: "distance",
         maxDistance: radius,
         spherical: true,
-        query: { status: SellerRequestStatus.APPROVED },
+        query: geoQuery,
       },
     },
     {
@@ -73,13 +149,46 @@ const getNearbySellers = async (
       },
     },
     {
+      $lookup: {
+        from: "foods",
+        localField: "userId",
+        foreignField: "sellerId",
+        as: "sellerFoods",
+      },
+    },
+  ];
+
+  // If search term is provided in location query, filter via $match
+  if (searchTerm && searchTerm.trim() !== "") {
+    const regex = { $regex: searchTerm.trim(), $options: "i" };
+    pipeline.push({
+      $match: {
+        $or: [
+          { businessName: regex },
+          { ownerName: regex },
+          { description: regex },
+          { address: regex },
+          { "user.name": regex },
+          {
+            sellerFoods: {
+              $elemMatch: {
+                name: regex,
+                status: FoodStatus.PUBLISHED,
+              },
+            },
+          },
+        ],
+      },
+    });
+  }
+
+  pipeline.push(
+    {
       $addFields: {
-        // Classify into 1km distance buckets (distance is in meters, divide by 1000)
         distanceBucket: { $floor: { $divide: ["$distance", 1000] } },
       },
     },
     {
-      // First prioritize closer 1km buckets, then sort by highest averageRating, then by exact distance
       $sort: {
         distanceBucket: 1,
         averageRating: -1,
@@ -91,6 +200,7 @@ const getNearbySellers = async (
         id: { $toString: "$_id" },
         userId: { $toString: "$userId" },
         businessName: 1,
+        ownerName: 1,
         cuisineTypes: 1,
         description: 1,
         address: 1,
@@ -107,8 +217,8 @@ const getNearbySellers = async (
       },
     },
     { $skip: (page - 1) * limit },
-    { $limit: limit },
-  ];
+    { $limit: limit }
+  );
 
   const sellers = await prisma.sellerProfile.aggregateRaw({
     pipeline,
@@ -117,7 +227,6 @@ const getNearbySellers = async (
   return sellers;
 };
 
-  
 const getSellerMenu = async (
   sellerId: string,
   category?: FoodCategory,
@@ -152,7 +261,6 @@ const getSellerMenu = async (
     data: foods,
   };
 };
-
 
 const getSellerAbout = async (
   sellerId: string,
@@ -251,7 +359,6 @@ const getFoodDetails = async (foodId: string, userId?: string) => {
   const cacheKey = `food_details:${foodId}`;
 
   let food: any = null;
-
 
   try {
     const cached = await redis.get(cacheKey);
