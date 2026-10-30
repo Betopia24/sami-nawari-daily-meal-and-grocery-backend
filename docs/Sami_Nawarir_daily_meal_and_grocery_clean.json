@@ -11631,6 +11631,45 @@
               "body": "{\n  \"statusCode\": 200,\n  \"success\": true,\n  \"message\": \"Favorite sellers retrieved successfully\",\n  \"data\": {\n    \"totalSaved\": 2,\n    \"savedLabel\": \"2 saved\",\n    \"sellers\": [\n      {\n        \"id\": \"68f1c841bb2a0011eeaa9911\",\n        \"sellerId\": \"68f1c841bb2a0011eeaa9910\",\n        \"userId\": \"68f1c841bb2a0011eeaa9910\",\n        \"businessName\": \"Maria's Kitchen\",\n        \"ownerName\": \"Maria Santos\",\n        \"profilePicture\": \"https://i.ibb.co.com/q2gwGfV/profile.jpg\",\n        \"coverImage\": \"https://res.cloudinary.com/demo/image/upload/mezze.jpg\",\n        \"cuisineTypes\": [\"MEDITERRANEAN\"],\n        \"description\": \"Authentic Mediterranean homemade delicacies\",\n        \"featuredDishSnippet\": \"\\\"Classic Mezze Platter\\\" — Hummus, baba ganoush, tabbouleh, olives, and fresh pita for 2. A taste of the Mediterranean coast.\",\n        \"preparationTime\": \"20 min\",\n        \"deliveryFee\": 2,\n        \"address\": \"123 Market St\",\n        \"distanceKm\": 0.4,\n        \"distanceLabel\": \"0.4 km\",\n        \"averageRating\": 4.9,\n        \"reviewCount\": 412,\n        \"pickupAvailable\": true,\n        \"deliveryAvailable\": true,\n        \"isOpen\": true,\n        \"isFavorite\": true,\n        \"favoritedAt\": \"2026-10-28T04:20:00.000Z\"\n      }\n    ]\n  }\n}"
             }
           ]
+        },
+        {
+          "name": "Retry Order Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"6ae4664c6d93dd33a8931649\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/retry-payment/:orderId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "retry-payment",
+                ":orderId"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "6ae4664c6d93dd33a8931649",
+                  "description": "Order ID to retry payment"
+                }
+              ]
+            },
+            "description": "Generates a new Stripe checkout session URL for an existing pending/failed order."
+          }
         }
       ]
     },
