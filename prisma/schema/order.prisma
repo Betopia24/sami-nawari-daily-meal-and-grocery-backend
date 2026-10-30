@@ -1,13 +1,12 @@
 enum OrderStatus {
   PENDING_PAYMENT
   CONFIRMED
-  ACCEPTED
   PREPARING
+  READY_FOR_PICKUP
   OUT_FOR_DELIVERY
   DELIVERED
   COMPLETED
   CANCELLED
-  FAILED
 }
 
 enum PaymentStatus {
@@ -25,6 +24,7 @@ enum PaymentMethod {
 
 type DeliveryAddressSnapshot {
   streetAddress String
+  apt           String?
   city          String
   state         String?
   postalCode    String?
@@ -68,9 +68,5 @@ model Order {
   @@index([userId])
   @@index([createdAt])
   @@index([userId, createdAt(sort: Desc)])
-  @@index([parentId])
-  @@index([items.sellerId])
-  @@index([recipientName])
-  @@index([contactPhone])
   @@map("orders")
 }

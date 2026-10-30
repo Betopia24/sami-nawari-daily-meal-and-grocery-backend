@@ -124,6 +124,18 @@ const createOrder = async (userId: string, payload: TCreateOrderPayload) => {
       ? PaymentStatus.UNPAID
       : PaymentStatus.PENDING;
 
+    // Clean deliveryAddress fields to strictly conform to Prisma schema snapshot
+    const cleanDeliveryAddress: any = {
+      streetAddress: payload.deliveryAddress.streetAddress,
+      city: payload.deliveryAddress.city,
+      ...(payload.deliveryAddress.state && { state: payload.deliveryAddress.state }),
+      ...(payload.deliveryAddress.postalCode && { postalCode: payload.deliveryAddress.postalCode }),
+      ...(payload.deliveryAddress.country && { country: payload.deliveryAddress.country }),
+    };
+    if (payload.deliveryAddress.apt) {
+      cleanDeliveryAddress.apt = payload.deliveryAddress.apt;
+    };
+
     // 5. Database transaction for Order Creation & Splitting
     const { parentOrder, outboxEvent } = await prisma.$transaction(async (tx) => {
       // Create the Parent Order
@@ -131,7 +143,7 @@ const createOrder = async (userId: string, payload: TCreateOrderPayload) => {
         data: {
           orderNumber: baseOrderNumber,
           userId,
-          deliveryAddress: payload.deliveryAddress,
+          deliveryAddress: cleanDeliveryAddress,
           recipientName: payload.recipientName,
           contactPhone: payload.contactPhone,
           note: payload.note || null,
@@ -167,7 +179,7 @@ const createOrder = async (userId: string, payload: TCreateOrderPayload) => {
           data: {
             orderNumber: `${baseOrderNumber}-S${index + 1}`,
             userId,
-            deliveryAddress: payload.deliveryAddress,
+            deliveryAddress: cleanDeliveryAddress,
             recipientName: payload.recipientName,
             contactPhone: payload.contactPhone,
             note: payload.note || null,
