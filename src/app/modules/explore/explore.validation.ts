@@ -1,7 +1,21 @@
 import { z } from "zod";
-import { FoodCategory } from "@prisma/client";
+import { CuisineType, FoodCategory } from "@prisma/client";
 
 const getNearbySellersSchema = z.object({
+  searchTerm: z.string().optional(),
+  cuisine: z
+    .nativeEnum(CuisineType, {
+      message: `Invalid cuisine. Must be one of: ${Object.values(CuisineType).join(", ")}`,
+    })
+    .optional(),
+  deliveryAvailable: z
+    .string()
+    .optional()
+    .transform((val) => (val === "true" ? true : val === "false" ? false : undefined)),
+  pickupAvailable: z
+    .string()
+    .optional()
+    .transform((val) => (val === "true" ? true : val === "false" ? false : undefined)),
   latitude: z
     .string()
     .optional()
@@ -19,10 +33,9 @@ const getNearbySellersSchema = z.object({
   radius: z
     .string()
     .optional()
-    // Fix #3 (Validation): Enforce maximum radius cap of 10km to prevent global DB scans
     .transform((val) => (val ? parseFloat(val) : 5000))
-    .refine((val) => !isNaN(val) && val > 0 && val <= 10000, {
-      message: "Radius must be a positive number no greater than 10,000 meters (10 km)",
+    .refine((val) => !isNaN(val) && val > 0 && val <= 50000, {
+      message: "Radius must be a positive number",
     }),
 
   page: z
@@ -37,7 +50,7 @@ const getNearbySellersSchema = z.object({
 
 const getSellerMenuSchema = z.object({
   category: z
-    .enum(Object.values(FoodCategory) as [string, ...string[]], {
+    .nativeEnum(FoodCategory, {
       message: `Invalid category. Must be one of: ${Object.values(FoodCategory).join(", ")}`,
     })
     .optional(),
