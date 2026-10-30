@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { FoodStatus } from "@prisma/client";
 import httpStatus from "http-status";
 import { v4 as uuidv4 } from "uuid";
 import config from "../../config";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
-import { objectIdToUuid } from "./ai.utils";
+import { mapMealPlanToStoredMealPlan, objectIdToUuid } from "./ai.utils";
 
 const getBaseUrl = (): string => config.aiService.baseUrl.replace(/\/$/, "");
 const getServiceToken = (): string => config.aiService.serviceToken;
@@ -73,23 +74,161 @@ const request = async <T>(
 };
 
 
+export const findMealPlanByIdOrPlanId = async (planIdOrMongoId: string) => {
+  if (!planIdOrMongoId) return null;
+
+  const byPlanId = await prisma.mealPlan.findUnique({
+    where: { planId: planIdOrMongoId },
+  });
+  if (byPlanId) return byPlanId;
+
+  if (/^[0-9a-fA-F]{24}$/.test(planIdOrMongoId)) {
+    const byId = await prisma.mealPlan.findUnique({
+      where: { id: planIdOrMongoId },
+    });
+    if (byId) return byId;
+  }
+
+  const allPlans = await prisma.mealPlan.findMany({
+    select: { id: true, planId: true, rawResponse: true },
+  });
+  const matched = allPlans.find((plan) => {
+    const rawResponse =
+      plan.rawResponse && typeof plan.rawResponse === "object"
+        ? (plan.rawResponse as any)
+        : {};
+
+    return (
+      plan.id === planIdOrMongoId ||
+      plan.planId === planIdOrMongoId ||
+      objectIdToUuid(plan.id) === planIdOrMongoId ||
+      rawResponse.generation_id === planIdOrMongoId
+    );
+  });
+  if (!matched) return null;
+
+  return prisma.mealPlan.findUnique({ where: { id: matched.id } });
+};
+
+const assertMealPlanOwner = (mealPlanUserId: string, userId: string) => {
+  if (
+    mealPlanUserId !== userId &&
+    objectIdToUuid(mealPlanUserId) !== objectIdToUuid(userId)
+  ) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "Access forbidden: meal plan does not belong to user",
+    );
+  }
+};
+
+const mapStoredMealPlanResponse = (plan: any) => ({
+  id: plan.id,
+  ...mapMealPlanToStoredMealPlan(plan),
+  start_date: plan.startDate,
+  created_at: plan.createdAt,
+  updated_at: plan.updatedAt,
+});
+
+
+const enrichFoodRecommendations = async (response: any) => {
+  const recommendation = response?.data || response;
+  const items = Array.isArray(recommendation?.items) ? recommendation.items : [];
+
+  if (items.length === 0) {
+    return response;
+  }
+
+  // AI receives UUID v5 IDs generated from MongoDB ObjectIds. Resolve those
+  // IDs back to the actual food records so clients can render the cards
+  // without making another lookup for every recommendation item.
+  const publishedFoodIds = await prisma.food.findMany({
+    where: { status: FoodStatus.PUBLISHED },
+    select: { id: true },
+  });
+  const foodIdByUuid = new Map(
+    publishedFoodIds.map((food) => [objectIdToUuid(food.id), food.id]),
+  );
+  const recommendedFoodIds = items
+    .map((item: any) => {
+      if (typeof item.item_id !== "string") return null;
+      if (/^[0-9a-fA-F]{24}$/.test(item.item_id)) return item.item_id;
+      return foodIdByUuid.get(item.item_id) || null;
+    })
+    .filter((id: string | null): id is string => Boolean(id));
+
+  const foods =
+    recommendedFoodIds.length > 0
+      ? await prisma.food.findMany({
+          where: {
+            id: { in: recommendedFoodIds },
+            status: FoodStatus.PUBLISHED,
+          },
+          include: {
+            seller: {
+              select: {
+                id: true,
+                name: true,
+                profilePicture: true,
+                sellerProfile: {
+                  select: {
+                    businessName: true,
+                    address: true,
+                  },
+                },
+              },
+            },
+          },
+        })
+      : [];
+
+  const foodsByUuid = new Map(
+    foods.map((food) => [objectIdToUuid(food.id), food]),
+  );
+  const foodsById = new Map(foods.map((food) => [food.id, food]));
+
+  const enrichedItems = items.map((item: any) => {
+    const food =
+      foodsById.get(item.item_id) || foodsByUuid.get(item.item_id) || null;
+
+    return {
+      ...item,
+      food_id: food?.id || null,
+      food,
+    };
+  });
+
+  if (response?.data) {
+    response.data.items = enrichedItems;
+  } else if (response && typeof response === "object") {
+    response.items = enrichedItems;
+  }
+
+  return response;
+};
+
+
 const getFoodRecommendations = async (userId: string, payload: any) => {
-  return request("/internal/v1/recommendations/foods", "POST", userId, {
+  const response = await request("/internal/v1/recommendations/foods", "POST", userId, {
     limit: payload.limit || 10,
     meal_type: payload.meal_type || payload.mealType || null,
     delivery_zone_id: payload.delivery_zone_id || null,
     exclude_food_ids: payload.exclude_food_ids || [],
   });
+
+  return enrichFoodRecommendations(response);
 };
 
 
 const getRecipeRecommendations = async (userId: string, payload: any) => {
-  return request("/internal/v1/recommendations/recipes", "POST", userId, {
+  const response = await request("/internal/v1/recommendations/recipes", "POST", userId, {
     limit: payload.limit || 10,
     meal_type: payload.meal_type || payload.mealType || null,
     max_cooking_time_minutes: payload.max_cooking_time_minutes || 60,
     exclude_recipe_ids: payload.exclude_recipe_ids || [],
   });
+
+  return enrichFoodRecommendations(response);
 };
 
 
@@ -106,9 +245,32 @@ const generateMealPlan = async (userId: string, payload: any, idempotencyKey?: s
   }, extraHeaders);
 
   const planData = response?.data || response;
-  const planId = planData?.plan_id || planData?.id || uuidv4();
-  const days = Array.isArray(planData?.days) ? planData.days : [];
-  const version = typeof planData?.version === "number" ? planData.version : 1;
+  const plan = planData?.plan || {};
+  const planId =
+    planData?.plan_id ||
+    plan?.plan_id ||
+    planData?.generation_id ||
+    planData?.id ||
+    uuidv4();
+  const days = Array.isArray(plan?.days)
+    ? plan.days
+    : Array.isArray(planData?.days)
+      ? planData.days
+      : [];
+  const version =
+    typeof plan?.version === "number"
+      ? plan.version
+      : typeof planData?.version === "number"
+        ? planData.version
+        : 1;
+
+  const existingPlan = await prisma.mealPlan.findUnique({
+    where: { planId },
+    select: { userId: true },
+  });
+  if (existingPlan) {
+    assertMealPlanOwner(existingPlan.userId, userId);
+  }
 
   const savedPlan = await prisma.mealPlan.upsert({
     where: { planId },
@@ -137,6 +299,29 @@ const generateMealPlan = async (userId: string, payload: any, idempotencyKey?: s
   }
 
   return response;
+};
+
+
+const getMyMealPlans = async (userId: string) => {
+  const plans = await prisma.mealPlan.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return plans.map(mapStoredMealPlanResponse);
+};
+
+
+const getMealPlan = async (userId: string, planId: string) => {
+  const plan = await findMealPlanByIdOrPlanId(planId);
+
+  if (!plan) {
+    throw new ApiError(httpStatus.NOT_FOUND, `Meal plan not found for ID: ${planId}`);
+  }
+
+  assertMealPlanOwner(plan.userId, userId);
+
+  return mapStoredMealPlanResponse(plan);
 };
 
 
@@ -235,6 +420,8 @@ export const AIService = {
   getFoodRecommendations,
   getRecipeRecommendations,
   generateMealPlan,
+  getMyMealPlans,
+  getMealPlan,
   getReplacementOptions,
   generateNutritionInsights,
   getLatestNutritionInsights,
