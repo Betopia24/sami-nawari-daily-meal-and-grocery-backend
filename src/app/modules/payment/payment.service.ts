@@ -63,7 +63,7 @@ const createCheckoutSession = async (userId: string, orderId: string, req?: Requ
   }
 
   // Identify seller accounts
-  const sellerIds = [...new Set(order.items.map((item) => item.sellerId))];
+  const sellerIds = [...new Set(order.items.map((item) => item.sellerId).filter((id): id is string => Boolean(id)))];
 
   // Resolve base URL for backend payment callback routes
   let backendOrigin = config.backendUrl;

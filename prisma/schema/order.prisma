@@ -1,12 +1,14 @@
 enum OrderStatus {
   PENDING_PAYMENT
   CONFIRMED
+  ACCEPTED
   PREPARING
   READY_FOR_PICKUP
   OUT_FOR_DELIVERY
   DELIVERED
   COMPLETED
   CANCELLED
+  FAILED
 }
 
 enum PaymentStatus {
@@ -37,7 +39,7 @@ type OrderItemSnapshot {
   quantity  Int
   unitPrice Float
   subtotal  Float
-  sellerId  String   @db.ObjectId
+  sellerId  String?  @db.ObjectId
 }
 
 model Order {
