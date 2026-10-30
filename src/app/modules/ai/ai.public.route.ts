@@ -13,6 +13,8 @@ router.post("/recommendations/recipes", AIPublicController.getRecipeRecommendati
 
 
 router.post("/meal-plans/generate", AIPublicController.generateMealPlan);
+router.get("/meal-plans", AIPublicController.getMyMealPlans);
+router.get("/meal-plans/:id", AIPublicController.getMealPlan);
 router.post("/meal-plans/:id/items/:mealItemId/replacement-options", AIPublicController.getReplacementOptions);
 router.post("/meal-plans/:id/insights", AIPublicController.generateNutritionInsights);
 router.get("/meal-plans/:id/insights/latest", AIPublicController.getLatestNutritionInsights);
