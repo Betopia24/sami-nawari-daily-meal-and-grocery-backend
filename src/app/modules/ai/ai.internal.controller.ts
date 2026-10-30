@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FoodStatus } from "@prisma/client";
 import { Request, Response } from "express";
@@ -6,6 +5,7 @@ import httpStatus from "http-status";
 import ApiError from "../../errors/apiError";
 import { prisma } from "../../prisma/prisma";
 import catchAsync from "../../utils/catchAsync";
+import { findMealPlanByIdOrPlanId } from "./ai.service";
 import {
   mapFoodToFoodItem,
   mapMealPlanToStoredMealPlan,
@@ -58,32 +58,6 @@ const findFoodByIdOrUuid = async (foodIdOrUuid: string) => {
   if (!matched) return null;
   return prisma.food.findUnique({ where: { id: matched.id } });
 };
-
-const findMealPlanByIdOrPlanId = async (planIdOrMongoId: string) => {
-  if (!planIdOrMongoId) return null;
-  const byPlanId = await prisma.mealPlan.findUnique({
-    where: { planId: planIdOrMongoId },
-  });
-  if (byPlanId) return byPlanId;
-
-  if (/^[0-9a-fA-F]{24}$/.test(planIdOrMongoId)) {
-    const byId = await prisma.mealPlan.findUnique({
-      where: { id: planIdOrMongoId },
-    });
-    if (byId) return byId;
-  }
-
-  const allPlans = await prisma.mealPlan.findMany({ select: { id: true, planId: true } });
-  const matched = allPlans.find(
-    (p) =>
-      p.id === planIdOrMongoId ||
-      p.planId === planIdOrMongoId ||
-      objectIdToUuid(p.id) === planIdOrMongoId,
-  );
-  if (!matched) return null;
-  return prisma.mealPlan.findUnique({ where: { id: matched.id } });
-};
-
 
 const getUserProfile = catchAsync(async (req: Request, res: Response) => {
   const userIdParam = parseSingleString(req.params.user_id);

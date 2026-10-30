@@ -101,7 +101,15 @@ All public endpoints are exposed through the Main Backend and require valid user
   }
   ```
 
-#### 4. Meal Item Replacement Options
+#### 4. List My Meal Plans
+* **Method & Route**: `GET /meal-plans`
+* **Description**: Returns all persisted meal plans belonging to the authenticated user, newest first.
+
+#### 5. Get a Meal Plan
+* **Method & Route**: `GET /meal-plans/:id`
+* **Description**: Returns one persisted meal plan after verifying that it belongs to the authenticated user. Accepts the `plan_id` returned by the generate endpoint (or the MongoDB id).
+
+#### 6. Meal Item Replacement Options
 * **Method & Route**: `POST /meal-plans/:id/replacement-options`
 * **Request Body**:
   ```json
@@ -114,18 +122,18 @@ All public endpoints are exposed through the Main Backend and require valid user
 
 ### 3.3 Nutrition Insights
 
-#### 5. Generate Nutrition Insights
+#### 7. Generate Nutrition Insights
 * **Method & Route**: `POST /meal-plans/:id/insights`
 * **Headers**: `Idempotency-Key: <unique-uuid>` (Optional)
 
-#### 6. Get Latest Nutrition Insights
+#### 8. Get Latest Nutrition Insights
 * **Method & Route**: `GET /meal-plans/:id/insights/latest`
 
 ---
 
 ### 3.4 Grocery Drafts
 
-#### 7. Grocery List Draft from Meal Plan
+#### 9. Grocery List Draft from Meal Plan
 * **Method & Route**: `POST /grocery-drafts/from-meal-plan`
 * **Request Body**:
   ```json
@@ -134,7 +142,7 @@ All public endpoints are exposed through the Main Backend and require valid user
   }
   ```
 
-#### 8. Grocery List Draft from Recipe
+#### 10. Grocery List Draft from Recipe
 * **Method & Route**: `POST /grocery-drafts/from-recipe`
 * **Request Body**:
   ```json
@@ -148,7 +156,7 @@ All public endpoints are exposed through the Main Backend and require valid user
 
 ### 3.5 Allergy & Dietary Compatibility Check
 
-#### 9. Single Compatibility Check
+#### 11. Single Compatibility Check
 * **Method & Route**: `POST /compatibility/check`
 * **Request Body**:
   ```json
@@ -158,7 +166,7 @@ All public endpoints are exposed through the Main Backend and require valid user
   }
   ```
 
-#### 10. Batch Compatibility Check
+#### 12. Batch Compatibility Check
 * **Method & Route**: `POST /compatibility/check-batch`
 * **Request Body**:
   ```json
@@ -174,18 +182,18 @@ All public endpoints are exposed through the Main Backend and require valid user
 
 ### 3.6 Seller AI Recipe Generation
 
-#### 11. Generate Recipe Draft for Food Item
+#### 13. Generate Recipe Draft for Food Item
 * **Method & Route**: `POST /seller-foods/:id/recipe-drafts/generate`
 * **Headers**: `Idempotency-Key: <unique-uuid>` (Optional)
 
-#### 12. Regenerate Recipe Draft
+#### 14. Regenerate Recipe Draft
 * **Method & Route**: `POST /seller-foods/:generationId/recipe-drafts/regenerate`
 
 ---
 
 ### 3.7 Recommendation Interaction Event Tracking
 
-#### 13. Track Recommendation Click Event
+#### 15. Track Recommendation Click Event
 * **Method & Route**: `POST /recommendation-events`
 * **Request Body**:
   ```json
