@@ -8582,34 +8582,58 @@
               ],
               "query": [
                 {
+                  "key": "searchTerm",
+                  "value": "Alex",
+                  "description": "Search by restaurant name, owner name, or food name",
+                  "disabled": true
+                },
+                {
+                  "key": "cuisine",
+                  "value": "ITALIAN",
+                  "description": "Filter by cuisine (MEDITERRANEAN, ITALIAN, CHINESE, INDIAN, MEXICAN, OTHER)",
+                  "disabled": true
+                },
+                {
+                  "key": "deliveryAvailable",
+                  "value": "true",
+                  "description": "Filter by delivery available (true/false)",
+                  "disabled": true
+                },
+                {
+                  "key": "pickupAvailable",
+                  "value": "true",
+                  "description": "Filter by pickup available (true/false)",
+                  "disabled": true
+                },
+                {
                   "key": "latitude",
-                  "value": "37.7879",
-                  "disabled": true,
-                  "description": ""
+                  "value": "37.7749",
+                  "description": "User latitude (optional)",
+                  "disabled": true
                 },
                 {
                   "key": "longitude",
-                  "value": "-122.3999",
-                  "disabled": true,
-                  "description": ""
+                  "value": "-122.4194",
+                  "description": "User longitude (optional)",
+                  "disabled": true
                 },
                 {
                   "key": "radius",
                   "value": "5000",
-                  "disabled": true,
-                  "description": ""
+                  "description": "Radius in meters",
+                  "disabled": true
                 },
                 {
                   "key": "page",
                   "value": "1",
-                  "disabled": true,
-                  "description": ""
+                  "description": "Page number",
+                  "disabled": true
                 },
                 {
                   "key": "limit",
                   "value": "10",
-                  "disabled": true,
-                  "description": ""
+                  "description": "Items per page",
+                  "disabled": true
                 }
               ]
             },
