@@ -151,6 +151,20 @@ const userUpdateAllergies = catchAsync(async (req: Request & { user?: any }, res
     });
 })
 
+const toggleNotification = catchAsync(async (req: Request & { user?: any }, res: Response) => {
+    const decodedUser = req.user as any;
+    const { isNotificationEnabled } = req.body;
+
+    const result = await UserService.toggleNotification(decodedUser.userId, isNotificationEnabled);
+
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: `Notifications turned ${isNotificationEnabled ? "on" : "off"} successfully`,
+        data: result,
+    });
+});
+
 const changeUserStatus = catchAsync(async (req: Request & { user?: any }, res: Response) => {
     const userId = req.params.id;
     const adminId = req.user.userId;
@@ -208,6 +222,7 @@ export const UserController = {
     userUpdateLanguageRegion,
     userUpdateDietaryPreferences,
     userUpdateAllergies,
+    toggleNotification,
     changeUserStatus,
     deleteUser,
     switchUserRole

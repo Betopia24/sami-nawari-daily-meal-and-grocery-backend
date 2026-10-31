@@ -45,6 +45,7 @@ model User {
   units              String?
   currency           String?
   fcmToken           String?
+  isNotificationEnabled Boolean      @default(true)
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   sellerProfile      SellerProfile?

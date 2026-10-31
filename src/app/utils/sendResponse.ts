@@ -8,7 +8,8 @@ type TResponse = {
     message: string;
     data?: any;
     meta?: any;
-
+    unreadCount?: number;
+    total?: number;
 };
 
 const sendResponse = (res: Response, payload: TResponse) => {
@@ -16,8 +17,10 @@ const sendResponse = (res: Response, payload: TResponse) => {
         statusCode: payload.statusCode,
         success: payload.success,
         message: payload.message,
+        ...(payload.unreadCount !== undefined && { unreadCount: payload.unreadCount }),
+        ...(payload.total !== undefined && { total: payload.total }),
         data: payload.data,
-        meta: payload.meta
+        ...(payload.meta !== undefined && { meta: payload.meta }),
     });
 };
 
