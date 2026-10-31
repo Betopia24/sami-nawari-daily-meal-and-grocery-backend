@@ -534,7 +534,7 @@ const updateOrderStatus = async (sellerId: string, orderId: string, newStatus: O
       [OrderStatus.PREPARING]: [OrderStatus.READY_FOR_PICKUP, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED],
       [OrderStatus.READY_FOR_PICKUP]: [OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERED, OrderStatus.CANCELLED],
       [OrderStatus.OUT_FOR_DELIVERY]: [OrderStatus.DELIVERED, OrderStatus.FAILED, OrderStatus.CANCELLED],
-      [OrderStatus.DELIVERED]: [],
+      [OrderStatus.DELIVERED]: [OrderStatus.COMPLETED],
       [OrderStatus.COMPLETED]: [],
       [OrderStatus.CANCELLED]: [],
       [OrderStatus.FAILED]: [],
