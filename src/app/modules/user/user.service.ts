@@ -510,6 +510,24 @@ const userUpdateAllergies = async (
   return userWithoutPassword;
 };
 
+const toggleNotification = async (userId: string, isNotificationEnabled: boolean) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: { isNotificationEnabled },
+  });
+
+  const { password: _, ...userWithoutPassword } = updatedUser;
+  return userWithoutPassword;
+};
+
 const changeUserStatus = async (
   userId: string,
   adminId: string,
@@ -651,6 +669,7 @@ export const UserService = {
   userUpdateLanguageRegion,
   userUpdateDietaryPreferences,
   userUpdateAllergies,
+  toggleNotification,
   changeUserStatus,
   deleteUser,
   switchUserRole,

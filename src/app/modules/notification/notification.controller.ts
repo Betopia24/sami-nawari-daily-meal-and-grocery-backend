@@ -6,13 +6,15 @@ import { NotificationService } from "./notification.service";
 
 const getMyNotifications = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const decodedUser = req.user as any;
-  const result = await NotificationService.getMyNotifications(decodedUser.userId);
+  const { notifications, unreadCount, total } = await NotificationService.getMyNotifications(decodedUser.userId);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: "Notifications retrieved successfully",
-    data: result,
+    unreadCount,
+    total,
+    data: notifications,
   });
 });
 

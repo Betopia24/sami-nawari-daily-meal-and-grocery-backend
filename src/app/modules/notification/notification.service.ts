@@ -17,10 +17,10 @@ const createNotification = async (payload: TCreateNotificationPayload) => {
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { fcmToken: true },
+    select: { fcmToken: true, isNotificationEnabled: true },
   });
 
-  if (user?.fcmToken) {
+  if (user?.fcmToken && user.isNotificationEnabled !== false) {
     try {
       const messagingPayload = {
         notification: {
@@ -45,11 +45,24 @@ const createNotification = async (payload: TCreateNotificationPayload) => {
 };
 
 const getMyNotifications = async (userId: string) => {
-  const notifications = await prisma.notification.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-  });
-  return notifications;
+  const [notifications, total, unreadCount] = await Promise.all([
+    prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.notification.count({
+      where: { userId },
+    }),
+    prisma.notification.count({
+      where: { userId, isRead: false },
+    }),
+  ]);
+
+  return {
+    unreadCount,
+    total,
+    notifications,
+  };
 };
 
 const markAsRead = async (userId: string, notificationId: string) => {
