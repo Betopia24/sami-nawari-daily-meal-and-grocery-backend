@@ -1,3 +1,4 @@
+import ApiError from "../../errors/apiError";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from "express";
 import catchAsync from "../../utils/catchAsync";
@@ -6,6 +7,14 @@ import { CartService } from "./cart.service";
 
 const addItemToCart = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const decodedUser = req.user as any;
+
+  if (decodedUser?.role === "SELLER") {
+    throw new ApiError(
+      403,
+      "Sellers cannot add items to cart. Please switch to Buyer mode first, then add to cart."
+    );
+  }
+
   const result = await CartService.addItemToCart(decodedUser.userId, req.body);
 
   sendResponse(res, {
