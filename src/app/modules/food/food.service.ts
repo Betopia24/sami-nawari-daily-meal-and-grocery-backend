@@ -121,6 +121,13 @@ const updateSellerFood = async (
 
   const { ingredients, ...rest } = payload;
 
+  // If food was previously rejected, editing it resubmits it for approval (PENDING).
+  // Once approved (PUBLISHED) or already pending, keep the current status on edit.
+  let newStatus: FoodStatus = food.status;
+  if (food.status === FoodStatus.REJECTED) {
+    newStatus = FoodStatus.PENDING;
+  }
+
   const updated = await prisma.food.update({
     where: { id: foodId },
     data: {
@@ -128,7 +135,7 @@ const updateSellerFood = async (
       ...(ingredients && {
         ingredients: ingredients as unknown as Prisma.InputJsonValue,
       }),
-      status: FoodStatus.PENDING,
+      status: newStatus,
     },
   });
 
