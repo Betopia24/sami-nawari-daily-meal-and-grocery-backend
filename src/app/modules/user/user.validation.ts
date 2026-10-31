@@ -58,6 +58,10 @@ const updateAllergiesValidationSchema = z.object({
   allergies: z.array(z.string()),
 });
 
+const toggleNotificationValidationSchema = z.object({
+  isNotificationEnabled: z.boolean(),
+});
+
 const changeUserStatusValidationSchema = z.object({
   status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']),
 });
@@ -70,5 +74,6 @@ export const userValidation = {
   updateLanguageRegionValidationSchema,
   updateDietaryPreferencesValidationSchema,
   updateAllergiesValidationSchema,
+  toggleNotificationValidationSchema,
   changeUserStatusValidationSchema,
 };

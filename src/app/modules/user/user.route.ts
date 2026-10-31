@@ -38,6 +38,13 @@ router.patch(
 );
 
 router.patch(
+    "/toggle-notification",
+    auth(UserRole.BUYER, UserRole.SELLER, UserRole.ADMIN),
+    validateRequest(userValidation.toggleNotificationValidationSchema),
+    UserController.toggleNotification
+);
+
+router.patch(
     "/update-language-region",
     auth(UserRole.BUYER, UserRole.SELLER, UserRole.ADMIN),
     validateRequest(userValidation.updateLanguageRegionValidationSchema),

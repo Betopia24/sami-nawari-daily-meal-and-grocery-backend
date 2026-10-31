@@ -24,12 +24,18 @@ export const fcmWorker = new Worker(
     // 2. Fetch User FCM Token
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { fcmToken: true },
+      select: { fcmToken: true, isNotificationEnabled: true },
     });
 
     if (!user) {
       console.warn(`⚠️ FCM Worker: User ${userId} not found.`);
       return { success: false, reason: "User not found" };
+    }
+
+    // Check if user has disabled notifications
+    if (user.isNotificationEnabled === false) {
+      console.log(`🔕 FCM Worker: User ${userId} has disabled push notifications. Skipping.`);
+      return { success: true, reason: "Notifications disabled by user" };
     }
 
     // 3. Send FCM Push Notification
