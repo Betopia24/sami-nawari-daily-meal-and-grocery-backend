@@ -3,6 +3,10 @@ enum FoodCategory {
   LUNCH
   DINNER
   SNACKS
+  DRINKS
+  SMOOTHIES
+  DESSERT
+  SANDWICH
 }
 
 enum FoodSubcategory {
