@@ -32,6 +32,30 @@ export const categorySubcategoryMap: Record<FoodCategory, FoodSubcategory[]> = {
     FoodSubcategory.QUICK,
     FoodSubcategory.HEALTHY,
   ],
+  [FoodCategory.DRINKS]: [
+    FoodSubcategory.HEALTHY,
+    FoodSubcategory.QUICK,
+    FoodSubcategory.SPECIAL,
+    FoodSubcategory.SWEET,
+  ],
+  [FoodCategory.SMOOTHIES]: [
+    FoodSubcategory.HEALTHY,
+    FoodSubcategory.QUICK,
+    FoodSubcategory.HIGH_PROTEIN,
+    FoodSubcategory.SWEET,
+  ],
+  [FoodCategory.DESSERT]: [
+    FoodSubcategory.SWEET,
+    FoodSubcategory.SPECIAL,
+    FoodSubcategory.COMFORT,
+    FoodSubcategory.TRADITIONAL,
+  ],
+  [FoodCategory.SANDWICH]: [
+    FoodSubcategory.QUICK,
+    FoodSubcategory.HEALTHY,
+    FoodSubcategory.LIGHT,
+    FoodSubcategory.HIGH_PROTEIN,
+  ],
 };
 
 const createFoodSchema = z.object({
@@ -39,7 +63,7 @@ const createFoodSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   images: z.array(z.string()).min(1, "At least one food image is required"),
   category: z.nativeEnum(FoodCategory, {
-    message: "Category must be BREAKFAST, LUNCH, DINNER, or SNACKS",
+    message: `Category must be one of: ${Object.values(FoodCategory).join(", ")}`,
   }),
   subcategory: z.nativeEnum(FoodSubcategory).optional(),
   price: z.number().min(0, "Price must be at least 0"),
